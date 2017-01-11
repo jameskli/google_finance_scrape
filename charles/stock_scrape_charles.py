@@ -199,6 +199,10 @@ def grab_income_statement_data(browser):
         /div[@id='fjfe-real-body']/div[@id='fjfe-click-wrapper']/div[@class='elastic']
         /div[@id='app']/div[@id='gf-viewc']/div[@class='fjfe-content']/div[@id='incannualdiv']
         /table[@id='fs-table']/tbody/tr[4]/td[@class='r'][1]""",
+                                     'gross_profit' : """/html/body/div[@class='fjfe-bodywrapper']
+        /div[@id='fjfe-real-body']/div[@id='fjfe-click-wrapper']/div[@class='elastic']
+        /div[@id='app']/div[@id='gf-viewc']/div[@class='fjfe-content']/div[@id='incannualdiv']
+        /table[@id='fs-table']/tbody/tr[@class='hilite'][2]/td[@class='r bld'][1]""",
                                      'sell_gen_admin_exp': """/html/body
         /div[@class='fjfe-bodywrapper']/div[@id='fjfe-real-body']/div[@id='fjfe-click-wrapper']
         /div[@class='elastic']/div[@id='app']/div[@id='gf-viewc']/div[@class='fjfe-content']
@@ -247,6 +251,12 @@ def grab_income_statement_data(browser):
             (const_income_statements_xpath['cost_of_revenue']).text)
     except:
         result_dict['Cost of Revenue Total'] = 'N/A'
+    try:
+        result_dict['Gross Profit'] = multiplier * \
+            convert_readable_num_to_float(browser.find_element_by_xpath\
+            (const_income_statements_xpath['gross_profit']).text)
+    except:
+        result_dict['Gross Profit'] = 'N/A'
     try:
         result_dict['Selling General Admin Expenses'] = multiplier * \
             convert_readable_num_to_float(browser.find_element_by_xpath\
@@ -472,24 +482,54 @@ def scrape(stock_symbol):
     except:
         print "Could not load Balance Sheet"
     stock_result_dict.update(grab_balance_sheet_data(browser))
+    stock_result_dict['Other'] = stock_result_dict['Gross Profit'] - \
+                                    stock_result_dict['Selling General Admin Expenses'] - \
+                                    stock_result_dict['Research and Development'] - \
+                                    stock_result_dict['Net Income Current Year']
 
+    stock_result_dict['Other Assets'] = stock_result_dict['Total Current Assets'] - \
+                                            stock_result_dict['Cash and Short Term Investments']
+    stock_result_dict['Fixed Assets'] = stock_result_dict['Total Assets'] - \
+                                            stock_result_dict['Total Current Assets']
+    stock_result_dict['Share Equity'] = stock_result_dict['Retained Earnings'] - \
+                                            stock_result_dict['Total Debt']
+    stock_result_dict['Long Term Liabilities'] = stock_result_dict['Total Liabilities'] - \
+                                            stock_result_dict['Total Current Liabilities']
+
+    
     for key, elem in stock_result_dict.items():
         print key, elem
     browser_quit(browser)
+    return stock_result_dict
 
-def scrape_and_write_to_file(stock_symbol):
+def scrape_and_write_to_file(stock_symbol, results_filename, results_dir_name):
     """Main function to scrape and analyze, split up into scrape and analyze steps"""
     scrape(stock_symbol)
+    print "Saving to: ", results_filename
 
-def process_file(work_filename,data_dir_name,logs_dir_name):
+    if not os.path.exists('{}'.format(results_dir_name)):
+        os.makedirs(results_dir_name)
+    results_fullpath = '{}/{}'.format(results_dir_name, results_filename)
+    
+    result_order_list=['Stock Name','s','','','','','']
+    #with open(results_fullpath, 'w+') as results_file:
+        
+                
+    
+
+
+
+
+
+def process_file(work_filename, data_dir_name, logs_dir_name, results_dir_name):
     """TBA"""
-    print "File: ",work_filename
+    print "File: ", work_filename
     if not os.path.exists('{}'.format(logs_dir_name)):
         os.makedirs(logs_dir_name)
 
     log_fullpath = '{}/log_{}.txt'.format(logs_dir_name, work_filename)
     work_fullpath = '{}/{}'.format(data_dir_name, work_filename)
-
+    results_filename= 'result_{}'.format(work_filename)
     if os.path.exists(log_fullpath):
         with open(log_fullpath, 'r') as log_file:
             try:
@@ -515,8 +555,8 @@ def process_file(work_filename,data_dir_name,logs_dir_name):
                     csv_reader.next()
 
                 for row in csv_reader:
-                    print "  working on ", row[0]
-                    scrape_and_write_to_file(row[0])
+                    print "  working on", row[0]
+                    scrape_and_write_to_file(row[0], results_filename, results_dir_name)
                     row_to_work_on += 1
                     with open(log_fullpath, 'w') as log_file:
                         log_file.writelines('{}'.format(row_to_work_on))
@@ -567,11 +607,9 @@ def main():
     print ca_errors_string
     print us_errors_string
 
-
-
 def main2():
     """For testing only"""
-    process_file('hello.csv','data','logs')
+    process_file('hello.csv', 'data', 'logs', 'results')
 
 
 
