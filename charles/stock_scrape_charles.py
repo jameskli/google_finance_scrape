@@ -493,33 +493,42 @@ def scrape(stock_symbol):
                                             stock_result_dict['Total Current Assets']
     stock_result_dict['Share Equity'] = stock_result_dict['Retained Earnings'] - \
                                             stock_result_dict['Total Debt']
-    stock_result_dict['Long Term Liabilities'] = stock_result_dict['Total Liabilities'] - \
+    stock_result_dict['Long Term Liabilities'] = stock_result_dict['Total Debt'] - \
                                             stock_result_dict['Total Current Liabilities']
 
-    
-    for key, elem in stock_result_dict.items():
-        print key, elem
+    #for key, elem in stock_result_dict.items():
+    #    print key, elem
     browser_quit(browser)
     return stock_result_dict
 
 def scrape_and_write_to_file(stock_symbol, results_filename, results_dir_name):
     """Main function to scrape and analyze, split up into scrape and analyze steps"""
-    scrape(stock_symbol)
-    print "Saving to: ", results_filename
+    stock_results_dict=scrape(stock_symbol)
 
     if not os.path.exists('{}'.format(results_dir_name)):
         os.makedirs(results_dir_name)
     results_fullpath = '{}/{}'.format(results_dir_name, results_filename)
-    
-    result_order_list=['Stock Name','s','','','','','']
-    #with open(results_fullpath, 'w+') as results_file:
-        
-                
-    
 
+    result_order_list = ['Stock Symbol', 'Exchange', 'Stock Name', 'Current Year', 'Previous Year',
+                         'Total Revenue Current Year', 'Cost of Revenue Total', 'Gross Profit',
+                         'Selling General Admin Expenses', 'Research and Development', 'Other',
+                         'Net Income Current Year', 'Total Revenue Last Year',
+                         'Net Income Last Year', 'Cash and Short Term Investments', 'Other Assets',
+                         'Total Current Assets', 'Fixed Assets', 'Total Assets',
+                         'Total Current Liabilities', 'Long Term Liabilities', 'Total Debt',
+                         'Share Equity', 'Retained Earnings',
+                         'Total Liabilities and Shareholders Equity', 'Employees', 'Market Cap',
+                         'Current PE Ratio']
 
+    if not os.path.exists(results_fullpath):
+        print "Saving in", results_fullpath
+        with open(results_fullpath, 'w') as results_file:
+            wr = csv.writer(results_file, quoting=csv.QUOTE_ALL)
+            wr.writerow(result_order_list)
 
-
+    with open(results_fullpath, 'a+') as results_file:
+        wr = csv.writer(results_file, quoting=csv.QUOTE_ALL)
+        wr.writerow([stock_results_dict[item] for item in result_order_list])
 
 def process_file(work_filename, data_dir_name, logs_dir_name, results_dir_name):
     """TBA"""
@@ -529,16 +538,16 @@ def process_file(work_filename, data_dir_name, logs_dir_name, results_dir_name):
 
     log_fullpath = '{}/log_{}.txt'.format(logs_dir_name, work_filename)
     work_fullpath = '{}/{}'.format(data_dir_name, work_filename)
-    results_filename= 'result_{}'.format(work_filename)
+    results_filename = 'result_{}'.format(work_filename)
     if os.path.exists(log_fullpath):
         with open(log_fullpath, 'r') as log_file:
             try:
-                print " resuming work"
+                print " Resuming work"
                 row_to_work_on = int(log_file.readline())
             except ValueError:
                 row_to_work_on = 1
     else:
-        print " starting new work"
+        print " Creating", log_fullpath
         row_to_work_on = 1
     with open(work_fullpath, 'rU') as work_file:
         csv_reader = csv.reader(work_file, delimiter='\t', quotechar='|')
@@ -555,7 +564,7 @@ def process_file(work_filename, data_dir_name, logs_dir_name, results_dir_name):
                     csv_reader.next()
 
                 for row in csv_reader:
-                    print "  working on", row[0]
+                    print "  {}. {}".format(row_to_work_on,row[0])
                     scrape_and_write_to_file(row[0], results_filename, results_dir_name)
                     row_to_work_on += 1
                     with open(log_fullpath, 'w') as log_file:
