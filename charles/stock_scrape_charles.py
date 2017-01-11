@@ -481,40 +481,52 @@ def scrape_and_write_to_file(stock_symbol):
     """Main function to scrape and analyze, split up into scrape and analyze steps"""
     scrape(stock_symbol)
 
-def process_file(work_filename,dir_name):
+def process_file(work_filename,data_dir_name,logs_dir_name):
     """TBA"""
-    
-    if not os.path.exists('/{}'.format(dir_name)):
-        os.makedirs(dir_name)
-    
-    log_filename = '/{}/log_{}'.format(dir_name,work_filename)
-    row_to_work_on = 0
+    print "File: ",work_filename
+    if not os.path.exists('{}'.format(logs_dir_name)):
+        os.makedirs(logs_dir_name)
 
-    if os.path.exists(log_filename):
-        with open(log_filename, 'r') as log_file:
-            print "Have not processed this file yet"
-            print log_file.readline()
+    log_fullpath = '{}/log_{}.txt'.format(logs_dir_name, work_filename)
+    work_fullpath = '{}/{}'.format(data_dir_name, work_filename)
+
+    if os.path.exists(log_fullpath):
+        with open(log_fullpath, 'r') as log_file:
+            try:
+                print " resuming work"
+                row_to_work_on = int(log_file.readline())
+            except ValueError:
+                row_to_work_on = 1
     else:
-        with open(log_filename, 'w') as log_file:
-            print "Opened new file for writing"
+        print " starting new work"
+        row_to_work_on = 1
+    with open(work_fullpath, 'rU') as work_file:
+        csv_reader = csv.reader(work_file, delimiter='\t', quotechar='|')
+        row_count = sum(1 for row in csv_reader)
 
-    """with open(work_filename) as fp:
-    for line in fp:
-        time.sleep(5+randint(0,6))
-        browser.get(line.strip('\n'))
-        myList=[]
+    if row_to_work_on >= 0:
+        with open(work_fullpath, 'rU') as work_file:
+            csv_reader = csv.reader(work_file, delimiter='\t', quotechar="'")
+            csv_reader.next() #skip header
+            if row_to_work_on < row_count:
+                for i in xrange(row_to_work_on-1): # skip everything right before
+                    print i
+                    print "  skipping {}".format(csv_reader.next()[0])
+                    csv_reader.next()
 
-        for data in COLUMN_DATA_SOURCE:
-            myList.append(browser.find_element_by_xpath(data).text.encode('utf-8'))
-
-        myList.append(line.strip('\n'))
-
-        with open(RESULT_FILENAME, 'a') as myfile:
-            wr = csv.writer(myfile, quoting=csv.QUOTE_ALL)
-            wr.writerow(myList)
-        print "1 Analyzed row "+str(count)
-        count+=1
-    """
+                for row in csv_reader:
+                    print "  working on ", row[0]
+                    scrape_and_write_to_file(row[0])
+                    row_to_work_on += 1
+                    with open(log_fullpath, 'w') as log_file:
+                        log_file.writelines('{}'.format(row_to_work_on))
+            else:
+                row_to_work_on = -1
+                print "Completed File"
+                with open(log_fullpath, 'w') as log_file:
+                    log_file.writelines('{}'.format(row_to_work_on))
+    else:
+        print "File already completed"
 
 def main():
     """Main function to call scraper"""
@@ -559,7 +571,7 @@ def main():
 
 def main2():
     """For testing only"""
-    process_file('hello.csv','data')
+    process_file('hello.csv','data','logs')
 
 
 
