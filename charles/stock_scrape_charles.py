@@ -463,39 +463,60 @@ def scrape(stock_symbol):
 
     stock_result_dict = dict()
     stock_result_dict.update(grab_summary_data(browser, stock_symbol))
-
-    browser_load_url(browser, return_finance_url(stock_symbol, stock_result_dict['Exchange']))
-
+    loaded_financial_data=True
+    loaded_income_statement=True
+    loaded_balance_sheet=True
+    try:
+        browser_load_url(browser, return_finance_url(stock_symbol, stock_result_dict['Exchange']))
+    except:
+        print "Could not load Financial Data"
+        loaded_financial_data=False
+        loaded_income_statement=False
+        loaded_balance_sheet=False
     try:
         browser_xpath_click(browser, const_page_xpaths_dict['income_statements'])
     except:
         print "Could not load Income Statement"
+        loaded_income_statement=False
     try:
-        browser_xpath_click(browser, const_page_xpaths_dict['annual_data'])
+        if loaded_income_statement:
+            browser_xpath_click(browser, const_page_xpaths_dict['annual_data'])
     except:
-        browser_xpath_click(browser, const_page_xpaths_dict['annual_data_alt'])
-        print "Did not work, clicking on alternate Annual Data"
-
-    stock_result_dict.update(grab_income_statement_data(browser))
+        if loaded_income_statement:
+            browser_xpath_click(browser, const_page_xpaths_dict['annual_data_alt'])
+            print "Did not work, clicking on alternate Annual Data"
+    if loaded_income_statement:
+        stock_result_dict.update(grab_income_statement_data(browser))
     try:
         browser_xpath_click(browser, const_page_xpaths_dict['balance_sheet'])
     except:
         print "Could not load Balance Sheet"
-    stock_result_dict.update(grab_balance_sheet_data(browser))
-    stock_result_dict['Other'] = stock_result_dict['Gross Profit'] - \
-                                    stock_result_dict['Selling General Admin Expenses'] - \
-                                    stock_result_dict['Research and Development'] - \
-                                    stock_result_dict['Net Income Current Year']
+        loaded_balance_sheet=False
+    if loaded_balance_sheet:
+        stock_result_dict.update(grab_balance_sheet_data(browser))
+    
+    if loaded_income_statement:
+        stock_result_dict['Other'] = stock_result_dict['Gross Profit'] - \
+                                     stock_result_dict['Selling General Admin Expenses'] - \
+                                     stock_result_dict['Research and Development'] - \
+                                     stock_result_dict['Net Income Current Year']
+    else:
+        stock_result_dict['Other'] = 'N/A'
 
-    stock_result_dict['Other Assets'] = stock_result_dict['Total Current Assets'] - \
+    if loaded_balance_sheet:
+        stock_result_dict['Other Assets'] = stock_result_dict['Total Current Assets'] - \
                                             stock_result_dict['Cash and Short Term Investments']
-    stock_result_dict['Fixed Assets'] = stock_result_dict['Total Assets'] - \
+        stock_result_dict['Fixed Assets'] = stock_result_dict['Total Assets'] - \
                                             stock_result_dict['Total Current Assets']
-    stock_result_dict['Share Equity'] = stock_result_dict['Retained Earnings'] - \
+        stock_result_dict['Share Equity'] = stock_result_dict['Retained Earnings'] - \
                                             stock_result_dict['Total Debt']
-    stock_result_dict['Long Term Liabilities'] = stock_result_dict['Total Debt'] - \
+        stock_result_dict['Long Term Liabilities'] = stock_result_dict['Total Debt'] - \
                                             stock_result_dict['Total Current Liabilities']
-
+    else:
+        stock_result_dict['Other Assets'] = 'N/A'
+        stock_result_dict['Fixed Assets'] = 'N/A'
+        stock_result_dict['Share Equity'] = 'N/A'
+        stock_result_dict['Long Term Liabilities'] = 'N/A'
     #for key, elem in stock_result_dict.items():
     #    print key, elem
     browser_quit(browser)
@@ -503,7 +524,8 @@ def scrape(stock_symbol):
 
 def scrape_and_write_to_file(stock_symbol, results_filename, results_dir_name):
     """Main function to scrape and analyze, split up into scrape and analyze steps"""
-    stock_results_dict=scrape(stock_symbol)
+    stock_results_dict=dict()
+    stock_results_dict.update(scrape(stock_symbol))
 
     if not os.path.exists('{}'.format(results_dir_name)):
         os.makedirs(results_dir_name)
@@ -523,12 +545,12 @@ def scrape_and_write_to_file(stock_symbol, results_filename, results_dir_name):
     if not os.path.exists(results_fullpath):
         print "Saving in", results_fullpath
         with open(results_fullpath, 'w') as results_file:
-            wr = csv.writer(results_file, quoting=csv.QUOTE_ALL)
-            wr.writerow(result_order_list)
+            csv_writer = csv.writer(results_file, quoting=csv.QUOTE_ALL)
+            csv_writer.writerow(result_order_list)
 
     with open(results_fullpath, 'a+') as results_file:
-        wr = csv.writer(results_file, quoting=csv.QUOTE_ALL)
-        wr.writerow([stock_results_dict[item] for item in result_order_list])
+        csv_writer = csv.writer(results_file, quoting=csv.QUOTE_ALL)
+        csv_writer.writerow([stock_results_dict[item] for item in result_order_list])
 
 def process_file(work_filename, data_dir_name, logs_dir_name, results_dir_name):
     """TBA"""
@@ -550,21 +572,20 @@ def process_file(work_filename, data_dir_name, logs_dir_name, results_dir_name):
         print " Creating", log_fullpath
         row_to_work_on = 1
     with open(work_fullpath, 'rU') as work_file:
-        csv_reader = csv.reader(work_file, delimiter='\t', quotechar='|')
+        csv_reader = csv.reader(work_file, delimiter=',', quotechar='"')
         row_count = sum(1 for row in csv_reader)
 
     if row_to_work_on >= 0:
         with open(work_fullpath, 'rU') as work_file:
-            csv_reader = csv.reader(work_file, delimiter='\t', quotechar="'")
+            csv_reader = csv.reader(work_file, delimiter=',', quotechar='"')
             csv_reader.next() #skip header
             if row_to_work_on < row_count:
                 for i in xrange(row_to_work_on-1): # skip everything right before
                     print i
                     print "  skipping {}".format(csv_reader.next()[0])
-                    csv_reader.next()
 
                 for row in csv_reader:
-                    print "  {}. {}".format(row_to_work_on,row[0])
+                    print "  {}. {}".format(row_to_work_on, row[0])
                     scrape_and_write_to_file(row[0], results_filename, results_dir_name)
                     row_to_work_on += 1
                     with open(log_fullpath, 'w') as log_file:
@@ -618,8 +639,6 @@ def main():
 
 def main2():
     """For testing only"""
-    process_file('hello.csv', 'data', 'logs', 'results')
-
-
+    process_file('company_list_biotech.csv', 'data', 'logs', 'results')
 
 main2()
