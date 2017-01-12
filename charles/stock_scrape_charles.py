@@ -594,6 +594,36 @@ def scrape_and_write_to_file(stock_symbol, results_filename, results_dir_name):
         csv_writer = csv.writer(results_file, quoting=csv.QUOTE_ALL)
         csv_writer.writerow([stock_results_dict[item] for item in result_order_list])
 
+def process_dir(data_dir_name, logs_dir_name, results_dir_name):
+    """TBA"""
+    print "Begin batch processing"
+    if not os.path.exists('{}'.format(logs_dir_name)):
+        os.makedirs(logs_dir_name)
+
+    if not os.path.exists('{}'.format(results_dir_name)):
+        os.makedirs(results_dir_name)
+
+    master_log_fullpath = '{}/log_master.txt'.format(logs_dir_name)
+
+    file_list = [f for f in os.listdir(data_dir_name) if f.endswith(".csv") and\
+                 os.path.isfile(os.path.join(data_dir_name, f))]
+    
+    with open(master_log_fullpath, 'w') as master_log:
+                master_log.writelines('{} Begin batch processing\n'.format(datetime.datetime.now()))
+
+    for item in file_list:
+        try:
+            #process_file(work_filename, data_dir_name, logs_dir_name, results_dir_name)
+            with open(master_log_fullpath, 'a+') as master_log:
+                master_log.writelines('{} finished: {}\n'.format(datetime.datetime.now(), item))
+        except IOError:
+            with open(master_log_fullpath, 'a+') as master_log:
+                master_log.writelines('{} could not process: {}\n'.format(datetime.datetime.now(), item))
+    
+    print "Batch processing ended"
+    with open(master_log_fullpath, 'a+') as master_log:
+                master_log.writelines('{} Batch processing ended\n'.format(datetime.datetime.now()))            
+
 def process_file(work_filename, data_dir_name, logs_dir_name, results_dir_name):
     """TBA"""
     print "File: ", work_filename
@@ -682,6 +712,7 @@ def main():
 
 def main2():
     """For testing only"""
-    process_file('hello.csv', 'data', 'logs', 'results')
+    process_dir('data', 'logs', 'results')
+    #process_file('hello.csv', 'data', 'logs', 'results')
 
 main2()
