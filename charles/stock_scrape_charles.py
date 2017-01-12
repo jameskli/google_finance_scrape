@@ -151,8 +151,14 @@ def grab_summary_data(browser, stock_symbol):
         /tbody/tr[5]/td[@class='val']"""}
     result_dict = dict()
     try:
-        result_dict['Stock Symbol'] = browser.find_element_by_xpath\
+        retrieved_stock_symbol = browser.find_element_by_xpath\
             (const_summary_xpaths_dict['stock_symbol']).text.strip('()').split(':')[1]
+        if retrieved_stock_symbol == stock_symbol:
+            result_dict['Stock Symbol'] = retrieved_stock_symbol
+        else:
+            print "Warning, original: {} is not the one found {}".\
+                format(stock_symbol,retrieved_stock_symbol)
+            raise ValueError
     except:
         result_dict['Stock Symbol'] = 'N/A'
     try:
@@ -459,8 +465,7 @@ def scrape(stock_symbol):
         /div[@class='gf-table-control-plain']/div[@class='gf-control']/a[@id='annual']"""}
 
     browser = initialize_browser()
-    browser_load_url(browser, return_base_url(stock_symbol, ''))
-
+    browser_load_url(browser, return_base_url(stock_symbol, NASDAQ)) # assume NASDAQ 
     stock_result_dict = dict()
     stock_result_dict.update(grab_summary_data(browser, stock_symbol))
     loaded_financial_data=True
@@ -491,10 +496,10 @@ def scrape(stock_symbol):
         browser_xpath_click(browser, const_page_xpaths_dict['balance_sheet'])
     except:
         print "Could not load Balance Sheet"
-        loaded_balance_sheet=False
+        loaded_balance_sheet = False
     if loaded_balance_sheet:
         stock_result_dict.update(grab_balance_sheet_data(browser))
-    
+
     if loaded_income_statement:
         stock_result_dict['Other'] = stock_result_dict['Gross Profit'] - \
                                      stock_result_dict['Selling General Admin Expenses'] - \
@@ -573,14 +578,14 @@ def process_file(work_filename, data_dir_name, logs_dir_name, results_dir_name):
         print " Creating", log_fullpath
         row_to_work_on = 1
     with open(work_fullpath, 'rU') as work_file:
-        #csv_reader = csv.reader(work_file, delimiter=',', quotechar='"')
-        csv_reader = csv.reader(work_file, delimiter='\t', quotechar="'")
+        csv_reader = csv.reader(work_file, delimiter=',', quotechar='"')
+        #csv_reader = csv.reader(work_file, delimiter='\t', quotechar="'")
         row_count = sum(1 for row in csv_reader)
 
     if row_to_work_on >= 0:
         with open(work_fullpath, 'rU') as work_file:
-            #csv_reader = csv.reader(work_file, delimiter=',', quotechar='"')
-            csv_reader = csv.reader(work_file, delimiter='\t', quotechar="'")
+            csv_reader = csv.reader(work_file, delimiter=',', quotechar='"')
+            #csv_reader = csv.reader(work_file, delimiter='\t', quotechar="'")
             csv_reader.next() #skip header
             if row_to_work_on < row_count:
                 for i in xrange(row_to_work_on-1): # skip everything right before
@@ -641,6 +646,6 @@ def main():
 
 def main2():
     """For testing only"""
-    process_file('company_list_biotech_2nd.csv', 'data', 'logs', 'results')
+    process_file('company_list_biotech_alt.csv', 'data', 'logs', 'results')
 
 main2()
