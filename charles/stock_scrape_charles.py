@@ -9,6 +9,7 @@ import time
 import math
 import csv
 import os
+import sys
 from selenium import webdriver
 
 ## GLOBAL CONSTANTS
@@ -597,6 +598,7 @@ def scrape_and_write_to_file(stock_symbol, results_filename, results_dir_name):
 def process_dir(data_dir_name, logs_dir_name, results_dir_name):
     """TBA"""
     print "Begin batch processing"
+    
     if not os.path.exists('{}'.format(logs_dir_name)):
         os.makedirs(logs_dir_name)
 
@@ -610,7 +612,7 @@ def process_dir(data_dir_name, logs_dir_name, results_dir_name):
     
     with open(master_log_fullpath, 'w') as master_log:
                 master_log.writelines('{} Begin batch processing\n'.format(datetime.datetime.now()))
-
+    sys.stdout.flush()
     for item in file_list:
         try:
             process_file(item, data_dir_name, logs_dir_name, results_dir_name)
@@ -619,11 +621,11 @@ def process_dir(data_dir_name, logs_dir_name, results_dir_name):
         except IOError:
             with open(master_log_fullpath, 'a+') as master_log:
                 master_log.writelines('{} could not process: {}\n'.format(datetime.datetime.now(), item))
-    
+        sys.stdout.flush()        
     print "Batch processing ended"
     with open(master_log_fullpath, 'a+') as master_log:
                 master_log.writelines('{} Batch processing ended\n'.format(datetime.datetime.now()))            
-
+    sys.stdout.flush()
 def process_file(work_filename, data_dir_name, logs_dir_name, results_dir_name):
     """TBA"""
     print "File: ", work_filename
