@@ -613,7 +613,7 @@ def process_dir(data_dir_name, logs_dir_name, results_dir_name):
 
     for item in file_list:
         try:
-            #process_file(work_filename, data_dir_name, logs_dir_name, results_dir_name)
+            process_file(item, data_dir_name, logs_dir_name, results_dir_name)
             with open(master_log_fullpath, 'a+') as master_log:
                 master_log.writelines('{} finished: {}\n'.format(datetime.datetime.now(), item))
         except IOError:
