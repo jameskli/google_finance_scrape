@@ -524,13 +524,7 @@ def scrape(stock_symbol):
 
 def scrape_and_write_to_file(stock_symbol, results_filename, results_dir_name):
     """Main function to scrape and analyze, split up into scrape and analyze steps"""
-    stock_results_dict=dict()
-    stock_results_dict.update(scrape(stock_symbol))
-
-    if not os.path.exists('{}'.format(results_dir_name)):
-        os.makedirs(results_dir_name)
-    results_fullpath = '{}/{}'.format(results_dir_name, results_filename)
-
+    
     result_order_list = ['Stock Symbol', 'Exchange', 'Stock Name', 'Current Year', 'Previous Year',
                          'Total Revenue Current Year', 'Cost of Revenue Total', 'Gross Profit',
                          'Selling General Admin Expenses', 'Research and Development', 'Other',
@@ -541,6 +535,13 @@ def scrape_and_write_to_file(stock_symbol, results_filename, results_dir_name):
                          'Share Equity', 'Retained Earnings',
                          'Total Liabilities and Shareholders Equity', 'Employees', 'Market Cap',
                          'Current PE Ratio']
+    stock_results_dict = {item: 'N/A' for item in result_order_list}
+    stock_results_dict.update(scrape(stock_symbol))
+
+    if not os.path.exists('{}'.format(results_dir_name)):
+        os.makedirs(results_dir_name)
+    results_fullpath = '{}/{}'.format(results_dir_name, results_filename)
+
 
     if not os.path.exists(results_fullpath):
         print "Saving in", results_fullpath
@@ -572,16 +573,17 @@ def process_file(work_filename, data_dir_name, logs_dir_name, results_dir_name):
         print " Creating", log_fullpath
         row_to_work_on = 1
     with open(work_fullpath, 'rU') as work_file:
-        csv_reader = csv.reader(work_file, delimiter=',', quotechar='"')
+        #csv_reader = csv.reader(work_file, delimiter=',', quotechar='"')
+        csv_reader = csv.reader(work_file, delimiter='\t', quotechar="'")
         row_count = sum(1 for row in csv_reader)
 
     if row_to_work_on >= 0:
         with open(work_fullpath, 'rU') as work_file:
-            csv_reader = csv.reader(work_file, delimiter=',', quotechar='"')
+            #csv_reader = csv.reader(work_file, delimiter=',', quotechar='"')
+            csv_reader = csv.reader(work_file, delimiter='\t', quotechar="'")
             csv_reader.next() #skip header
             if row_to_work_on < row_count:
                 for i in xrange(row_to_work_on-1): # skip everything right before
-                    print i
                     print "  skipping {}".format(csv_reader.next()[0])
 
                 for row in csv_reader:
@@ -639,6 +641,6 @@ def main():
 
 def main2():
     """For testing only"""
-    process_file('company_list_biotech.csv', 'data', 'logs', 'results')
+    process_file('company_list_biotech_2nd.csv', 'data', 'logs', 'results')
 
 main2()
