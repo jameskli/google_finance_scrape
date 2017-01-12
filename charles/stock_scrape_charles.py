@@ -665,6 +665,7 @@ def process_file(work_filename, data_dir_name, logs_dir_name, results_dir_name):
                     row_to_work_on += 1
                     with open(log_fullpath, 'w') as log_file:
                         log_file.writelines('{}'.format(row_to_work_on))
+                    sys.stdout.flush()
             else:
                 row_to_work_on = -1
                 print "Completed File"
