@@ -227,11 +227,21 @@ def grab_income_statement_data(browser):
         /div[@class='elastic']/div[@id='app']/div[@id='gf-viewc']/div[@class='fjfe-content']
         /div[@id='incannualdiv']/table[@id='fs-table']/tbody/tr[@class='hilite'][1]
         /td[@class='r bld'][2]""",
+                                     'alt_total_revenue_last_year': """/html/body
+        /div[@class='fjfe-bodywrapper']/div[@id='fjfe-real-body']/div[@id='fjfe-click-wrapper']
+        /div[@class='elastic']/div[@id='app']/div[@id='gf-viewc']/div[@class='fjfe-content']
+        /div[@id='incannualdiv']/table[@id='fs-table']/tbody/tr[@class='hilite'][1]
+        /td[@class='r bld rm']""",
                                      'net_income_last_year': """/html/body
         /div[@class='fjfe-bodywrapper']/div[@id='fjfe-real-body']/div[@id='fjfe-click-wrapper']
         /div[@class='elastic']/div[@id='app']/div[@id='gf-viewc']/div[@class='fjfe-content']
         /div[@id='incannualdiv']/table[@id='fs-table']/tbody/tr[@class='hilite'][8]
         /td[@class='r bld'][2]""",
+                                    'alt_net_income_last_year': """/html/body
+        /div[@class='fjfe-bodywrapper']/div[@id='fjfe-real-body']/div[@id='fjfe-click-wrapper']
+        /div[@class='elastic']/div[@id='app']/div[@id='gf-viewc']/div[@class='fjfe-content']
+        /div[@id='incannualdiv']/table[@id='fs-table']/tbody/tr[@class='hilite'][8]
+        /td[@class='r bld rm']""",
                                      'date_this_year': """/html/body/div[@class='fjfe-bodywrapper']
         /div[@id='fjfe-real-body']/div[@id='fjfe-click-wrapper']/div[@class='elastic']
         /div[@id='app']/div[@id='gf-viewc']/div[@class='fjfe-content']/div[@id='incannualdiv']
@@ -239,7 +249,11 @@ def grab_income_statement_data(browser):
                                      'date_last_year': """/html/body/div[@class='fjfe-bodywrapper']
         /div[@id='fjfe-real-body']/div[@id='fjfe-click-wrapper']/div[@class='elastic']
         /div[@id='app']/div[@id='gf-viewc']/div[@class='fjfe-content']/div[@id='incannualdiv']
-        /table[@id='fs-table']/thead/tr/th[@class='rgt'][2]"""}
+        /table[@id='fs-table']/thead/tr/th[@class='rgt'][2]""",
+                                     'alt_date_last_year': """/html/body
+        /div[@class='fjfe-bodywrapper']/div[@id='fjfe-real-body']/div[@id='fjfe-click-wrapper']
+        /div[@class='elastic']/div[@id='app']/div[@id='gf-viewc']/div[@class='fjfe-content']
+        /div[@id='incannualdiv']/table[@id='fs-table']/thead/tr/th[@class='rgt rm']"""}
     result_dict = dict()
 
     multiplier = grab_multiplier(browser,
@@ -309,6 +323,28 @@ def grab_income_statement_data(browser):
         result_dict['Previous Year'] = match.group(0)
     except:
         result_dict['Previous Year'] = 'N/A'
+    
+    if result_dict['Net Income Last Year'] == result_dict['Total Revenue Last Year'] == result_dict['Previous Year'] == 'N/A':
+        print "Fewer historical data, trying last column"
+        try:
+            result_dict['Net Income Last Year'] = multiplier * \
+            convert_readable_num_to_float(browser.find_element_by_xpath\
+            (const_income_statements_xpath['alt_net_income_last_year']).text)
+        except:
+            result_dict['Net Income Last Year'] = 'N/A'
+        try:
+            date_str = browser.find_element_by_xpath\
+                (const_income_statements_xpath['alt_date_last_year']).text
+            match = re.search('[0-2][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]', date_str)
+            result_dict['Previous Year'] = match.group(0)
+        except:
+            result_dict['Previous Year'] = 'N/A'
+        try:
+            result_dict['Total Revenue Last Year'] = multiplier * \
+                convert_readable_num_to_float(browser.find_element_by_xpath\
+                (const_income_statements_xpath['alt_total_revenue_last_year']).text)
+        except:
+            result_dict['Total Revenue Last Year'] = 'N/A'
 
     return result_dict
 
@@ -482,7 +518,7 @@ def scrape(stock_symbol):
         browser_xpath_click(browser, const_page_xpaths_dict['income_statements'])
     except:
         print "Could not load Income Statement"
-        loaded_income_statement=False
+        loaded_income_statement = False
     try:
         if loaded_income_statement:
             browser_xpath_click(browser, const_page_xpaths_dict['annual_data'])
@@ -588,7 +624,7 @@ def process_file(work_filename, data_dir_name, logs_dir_name, results_dir_name):
             #csv_reader = csv.reader(work_file, delimiter='\t', quotechar="'")
             csv_reader.next() #skip header
             if row_to_work_on < row_count:
-                for i in xrange(row_to_work_on-1): # skip everything right before
+                for i in xrange(row_to_work_on - 1): # skip everything right before
                     print "  skipping {}".format(csv_reader.next()[0])
 
                 for row in csv_reader:
@@ -646,6 +682,6 @@ def main():
 
 def main2():
     """For testing only"""
-    process_file('company_list_biotech_alt.csv', 'data', 'logs', 'results')
+    process_file('hello.csv', 'data', 'logs', 'results')
 
 main2()
