@@ -154,7 +154,6 @@ def grab_summary_data(browser, stock_symbol):
     try:
         retrieved_stock_symbol = browser.find_element_by_xpath\
             (const_summary_xpaths_dict['stock_symbol']).text.strip('()').split(':')[1]
-        retrieved_stock_symbol = retrieved_stock_symbol.strip()
         if retrieved_stock_symbol == stock_symbol:
             result_dict['Stock Symbol'] = retrieved_stock_symbol
         else:
@@ -513,9 +512,9 @@ def scrape(stock_symbol):
         browser_load_url(browser, return_finance_url(stock_symbol, stock_result_dict['Exchange']))
     except:
         print "Could not load Financial Data"
-        loaded_financial_data=False
-        loaded_income_statement=False
-        loaded_balance_sheet=False
+        loaded_financial_data = False
+        loaded_income_statement = False
+        loaded_balance_sheet = False
     try:
         browser_xpath_click(browser, const_page_xpaths_dict['income_statements'])
     except:
@@ -579,7 +578,7 @@ def scrape_and_write_to_file(stock_symbol, results_filename, results_dir_name):
                          'Total Liabilities and Shareholders Equity', 'Employees', 'Market Cap',
                          'Current PE Ratio']
     stock_results_dict = {item: 'N/A' for item in result_order_list}
-    stock_results_dict.update(scrape(stock_symbol))
+    stock_results_dict.update(scrape(stock_symbol.strip()))
 
     if not os.path.exists('{}'.format(results_dir_name)):
         os.makedirs(results_dir_name)
