@@ -480,6 +480,10 @@ def grab_multiplier(browser, xpath_string):
         return 1000.0
     else:
         return 1.0
+def clean_up_stock_symbol(input_stock_symbol):
+    """handles stock symbols with whitespace, but also, those that use hats ^ 
+    to distinguish stock_classes eg DD^B for B class DD shares, should be DD-B"""
+    return input_stock_symbol.strip().replace('^','-')
 def scrape(stock_symbol):
     """Visits website to scrape data on stock_symbol in exchange."""
     ## SELENIUM PATH CONSTANTS
@@ -505,9 +509,9 @@ def scrape(stock_symbol):
     browser_load_url(browser, return_base_url(stock_symbol, NASDAQ)) # assume NASDAQ 
     stock_result_dict = dict()
     stock_result_dict.update(grab_summary_data(browser, stock_symbol))
-    loaded_financial_data=True
-    loaded_income_statement=True
-    loaded_balance_sheet=True
+    loaded_financial_data = True
+    loaded_income_statement = True
+    loaded_balance_sheet = True
     try:
         browser_load_url(browser, return_finance_url(stock_symbol, stock_result_dict['Exchange']))
     except:
@@ -578,7 +582,8 @@ def scrape_and_write_to_file(stock_symbol, results_filename, results_dir_name):
                          'Total Liabilities and Shareholders Equity', 'Employees', 'Market Cap',
                          'Current PE Ratio']
     stock_results_dict = {item: 'N/A' for item in result_order_list}
-    stock_results_dict.update(scrape(stock_symbol.strip()))
+
+    stock_results_dict.update(scrape(clean_up_stock_symbol(stock_symbol)))
 
     if not os.path.exists('{}'.format(results_dir_name)):
         os.makedirs(results_dir_name)
