@@ -154,11 +154,12 @@ def grab_summary_data(browser, stock_symbol):
     try:
         retrieved_stock_symbol = browser.find_element_by_xpath\
             (const_summary_xpaths_dict['stock_symbol']).text.strip('()').split(':')[1]
+        retrieved_stock_symbol = retrieved_stock_symbol.strip()
         if retrieved_stock_symbol == stock_symbol:
             result_dict['Stock Symbol'] = retrieved_stock_symbol
         else:
             print "Warning, original: {} is not the one found {}".\
-                format(stock_symbol,retrieved_stock_symbol)
+                format(stock_symbol, retrieved_stock_symbol)
             raise ValueError
     except:
         result_dict['Stock Symbol'] = 'N/A'
