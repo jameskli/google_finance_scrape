@@ -77,14 +77,8 @@ def return_base_url(stock_symbol, exchange=None):
     if not exchange:
         return const_base_url + stock_symbol
     else:
-        if exchange == TSE:
-            return const_base_url + const_tse_url_prefix + stock_symbol
-        elif exchange == NYSE:
-            return const_base_url + const_nyse_url_prefix + stock_symbol
-        elif exchange == NASDAQ:
-            return const_base_url + const_nasdaq_url_prefix + stock_symbol
-        else:
-            return const_base_url + stock_symbol
+        return const_base_url + exchange + '%3A'+stock_symbol
+
 def return_finance_url(stock_symbol, exchange):
     """Returns the path to the financials page from the main stock listing page,
     e.g. on Google Finance"""
@@ -535,6 +529,7 @@ def scrape(stock_symbol):
     loaded_income_statement = True
     loaded_balance_sheet = True
     try:
+        print stock_result_dict['Exchange']
         browser_load_url(browser, return_finance_url(stock_symbol, stock_result_dict['Exchange']))
     except:
         print "Could not load Financial Data"
