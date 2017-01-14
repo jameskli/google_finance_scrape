@@ -19,52 +19,6 @@ NYSE = "NYSE"
 TSE = "TSE"
 RESULT_MULTIPLIER = "K"
 
-TO_DEL_COLUMN_HEADER = [
-    "Stock Symbol",
-    "Exchange",
-    "Stock Name",
-    "Last Price",
-    "Last Price Date",
-    "Current PE Ratio",
-    "Avg ROE",
-    "Avg ROE Error",
-    "Avg ROTC",
-    "Avg ROTC Error",
-    "Avg ROTA",
-    "Avg ROTA Error",
-    "EPS CAGR",
-    "EPS CAGR Error",
-    "BPS CAGR",
-    "BPS CAGR Error",
-    "CAGR Used",
-    "Future PE Ratio (Calc)"
-    "Ratio Used for Prediction",
-    "Predicted Price today",
-    "MOS Year",
-    "MOS Something",
-    "MOS Sticker Price",
-    "MOS Price",
-    "Value Ratio"
-    "Score Returns ROE/TC/TA",
-    "Score Returns Fluctuation",
-    "Score Growth EPS/BPS CAGR",
-    "Score Growth Fluctuation",
-    "Score Value",
-    "Score Total",
-    "Alt Returns ROE/TC/TA",
-    "Alt Returns Fluctuation",
-    "Alt Growth EPS/BPS CAGR",
-    "Alt Growth Fluctuation",
-    "Alt Value",
-    "Alt Total",
-    "Bank Returns ROE/TC/TA",
-    "Bank Returns Fluctuation",
-    "Bank Growth EPS/BPS CAGR",
-    "Bank Growth Fluctuation",
-    "Bank Value",
-    "Bank Total"
-]
-
 def return_base_url(stock_symbol, exchange=None):
     """Return string of the URL to visit given a stock symbol and stock exchange
     Stock exchange can be blank
@@ -119,22 +73,22 @@ def grab_summary_data(browser, stock_symbol):
     """
     const_sum_xpath_base = """/html/body/div[@class='fjfe-bodywrapper']
         /div[@id='fjfe-real-body']/div[@id='fjfe-click-wrapper']"""
-    const_summary_xpaths_dict = {'stock_name': """{}/div[@id='appbar']/div[@class='elastic']
+    const_summary_xpaths_dict = {'stock_name' : """{}/div[@id='appbar']/div[@class='elastic']
                                     /div[@class='appbar-center']
                                     /div[@class='appbar-snippet-primary']
                                     /span""".format(const_sum_xpath_base),
-                                 'stock_symbol': """{}/div[@id='appbar']/div[@class='elastic']
+                                 'stock_symbol' : """{}/div[@id='appbar']/div[@class='elastic']
                                     /div[@class='appbar-center']
                                     /div[@class='appbar-snippet-secondary']
                                     /span""".format(const_sum_xpath_base),
-                                 'current_pe': """{}/div[@class='elastic']/div[@id='app']
+                                 'current_pe' : """{}/div[@class='elastic']/div[@id='app']
                                     /div[@id='gf-viewc']/div[@class='fjfe-content']
                                     /div[@class='g-wrap']/div[@class='g-section g-tpl-right-1']
                                     /div[@class='g-unit']/div[@id='market-data-div']
                                     /div[@class='snap-panel-and-plusone']/div[@class='snap-panel']
                                     /table[@class='snap-data'][1]/tbody/tr[6]
                                     /td[@class='val']""".format(const_sum_xpath_base),
-                                 'employees': """{}/div[@class='elastic']/div[@id='app']
+                                 'employees' : """{}/div[@class='elastic']/div[@id='app']
                                     /div[@id='gf-viewc']/div[@class='fjfe-content']
                                     /div[@class='g-wrap']
                                     /div[@class='g-section g-tpl-right-1 sfe-break-top-5']
@@ -142,7 +96,7 @@ def grab_summary_data(browser, stock_symbol):
                                     /div[@class='sfe-section'][1]/table[@class='quotes rgt nwp']
                                     /tbody/tr[6]
                                     /td[@class='period'][1]""".format(const_sum_xpath_base),
-                                 'market_cap': """{}/div[@class='elastic']/div[@id='app']
+                                 'market_cap' : """{}/div[@class='elastic']/div[@id='app']
                                     /div[@id='gf-viewc']/div[@class='fjfe-content']
                                     /div[@class='g-wrap']/div[@class='g-section g-tpl-right-1']
                                     /div[@class='g-unit']/div[@id='market-data-div']
@@ -160,7 +114,7 @@ def grab_summary_data(browser, stock_symbol):
         result_dict['Stock Symbol'] = 'N/A'
 
     if result_dict['Stock Symbol'] != stock_symbol:
-        print "Warning 1, {} is not in NASDAQ, retry with NYSE".format(stock_symbol)
+        print "    Warning 1, {} is not in NASDAQ, retry with NYSE".format(stock_symbol)
         try:
             browser_load_url(browser, return_base_url(stock_symbol, NYSE))
             retrieved_stock_symbol = browser.find_element_by_xpath\
@@ -170,7 +124,7 @@ def grab_summary_data(browser, stock_symbol):
             result_dict['Stock Symbol'] = 'N/A'
 
     if result_dict['Stock Symbol'] != stock_symbol:
-        print "Warning 2, {} not in NYSE, retry with empty.".format(stock_symbol)
+        print "    Warning 2, {} not in NYSE, retry with empty.".format(stock_symbol)
         try:
             browser_load_url(browser, return_base_url(stock_symbol))
             retrieved_stock_symbol = browser.find_element_by_xpath\
@@ -179,7 +133,7 @@ def grab_summary_data(browser, stock_symbol):
         except:
             result_dict['Stock Symbol'] = 'N/A'
     if result_dict['Stock Symbol'] != stock_symbol:
-        print "Still could not find {}, giving up".format(stock_symbol)
+        print "    Still could not find {}, giving up".format(stock_symbol)
     try:
         result_dict['Exchange'] = browser.find_element_by_xpath\
             (const_summary_xpaths_dict['stock_symbol']).text.strip('()').split(':')[0]
@@ -211,42 +165,68 @@ def grab_summary_data(browser, stock_symbol):
     return result_dict
 def grab_income_statement_data(browser):
     """Extract data from income statement page of Google Finance, need to pass in browser object """
+
+    const_bal_xpath_y1 = "'][1]"
+    const_bal_xpath_ylast = " rm']"
+    const_bal_xpath_y2 = "'][2]"
+
+    const_inc_xpath_year = """/html/body/div[@class='fjfe-bodywrapper']/div[@id='fjfe-real-body']
+        /div[@id='fjfe-click-wrapper']/div[@class='elastic']/div[@id='app']/div[@id='gf-viewc']
+        /div[@class='fjfe-content']/div[@id='incannualdiv']/table[@id='fs-table']/thead/tr/th"""
+
+    num_years = len(browser.find_elements_by_xpath(const_inc_xpath_year)) - 1
+
+    if num_years == 1:
+        print "      Warning, only 1 year of data available."
+        y1_suffix = const_bal_xpath_ylast
+        y2_suffix = const_bal_xpath_ylast
+    elif num_years == 2:
+        print "      Warning, only 2 years of data available."
+        y1_suffix = const_bal_xpath_y1
+        y2_suffix = const_bal_xpath_ylast
+    else:
+        y1_suffix = const_bal_xpath_y1
+        y2_suffix = const_bal_xpath_y2
+
     const_inc_xpath_base = """/html/body/div[@class='fjfe-bodywrapper']/div[@id='fjfe-real-body']
         /div[@id='fjfe-click-wrapper']/div[@class='elastic']/div[@id='app']/div[@id='gf-viewc']
         /div[@class='fjfe-content']/div[@id='incannualdiv']/table[@id='fs-table']"""
 
     const_multipler_xpath = """{}/thead/tr/th[@class='lm lft nwp']""".format(const_inc_xpath_base)
 
-    const_income_statements_xpath = {'total_revenue_this_year': """{}/tbody/tr[@class='hilite'][1]
-                                            /td[@class='r bld'][1]""".format(const_inc_xpath_base),
+    const_income_statements_xpath = {'total_revenue_this_year' : """{}/tbody/tr[@class='hilite'][1]
+                                            /td[@class='r bld{}""".format(const_inc_xpath_base,
+                                                                          y1_suffix),
                                      'cost_of_revenue': """{}/tbody/tr[4]
-                                            /td[@class='r'][1]""".format(const_inc_xpath_base),
+                                            /td[@class='r{}""".format(const_inc_xpath_base,
+                                                                      y1_suffix),
                                      'gross_profit' : """{}/tbody/tr[@class='hilite'][2]
-                                            /td[@class='r bld'][1]""".format(const_inc_xpath_base),
-                                     'sell_gen_admin_exp': """{}/tbody/tr[6]
-                                            /td[@class='r'][1]""".format(const_inc_xpath_base),
+                                            /td[@class='r bld{}""".format(const_inc_xpath_base,
+                                                                          y1_suffix),
+                                     'sell_gen_admin_exp' : """{}/tbody/tr[6]
+                                            /td[@class='r{}""".format(const_inc_xpath_base,
+                                                                      y1_suffix),
                                      'r_and_d': """{}/tbody/tr[7]
-                                            /td[@class='r'][1]""".format(const_inc_xpath_base),
-                                     'net_income_this_year': """{}/tbody/tr[@class='hilite'][8]
-                                            /td[@class='r bld'][1]""".format(const_inc_xpath_base),
-                                     'total_revenue_last_year': """{}/tbody/tr[@class='hilite'][1]
-                                            /td[@class='r bld'][2]""".format(const_inc_xpath_base),
-                                     'alt_total_revenue_last_year': """{}/tbody
-                                            /tr[@class='hilite'][1]
-                                            /td[@class='r bld rm']""".format(const_inc_xpath_base),
-                                     'net_income_last_year': """{}/tbody/tr[@class='hilite'][8]
-                                            /td[@class='r bld'][2]""".format(const_inc_xpath_base),
-                                     'alt_net_income_last_year': """{}/tbody/tr[@class='hilite'][8]
-                                            /td[@class='r bld rm']""".format(const_inc_xpath_base),
-                                     'date_this_year': """{}/thead/tr
-                                            /th[@class='rgt'][1]""".format(const_inc_xpath_base),
-                                     'date_last_year': """{}/thead/tr
-                                            /th[@class='rgt'][2]""".format(const_inc_xpath_base),
-                                     'alt_date_last_year': """{}/thead/tr
-                                            /th[@class='rgt rm']""".format(const_inc_xpath_base)
+                                            /td[@class='r{}""".format(const_inc_xpath_base,
+                                                                      y1_suffix),
+                                     'net_income_this_year' : """{}/tbody/tr[@class='hilite'][8]
+                                            /td[@class='r bld{}""".format(const_inc_xpath_base,
+                                                                          y1_suffix),
+                                     'total_revenue_last_year' : """{}/tbody/tr[@class='hilite'][1]
+                                            /td[@class='r bld{}""".format(const_inc_xpath_base,
+                                                                          y2_suffix),
+                                     'net_income_last_year' : """{}/tbody/tr[@class='hilite'][8]
+                                            /td[@class='r bld{}""".format(const_inc_xpath_base,
+                                                                          y2_suffix),
+                                     'date_this_year' : """{}/thead/tr
+                                            /th[@class='rgt{}""".format(const_inc_xpath_base,
+                                                                        y1_suffix),
+                                     'date_last_year' : """{}/thead/tr
+                                            /th[@class='rgt{}""".format(const_inc_xpath_base,
+                                                                        y2_suffix)
                                     }
     result_dict = dict()
-
+    
     multiplier = grab_multiplier(browser,
                                  const_multipler_xpath) / si_suffix_to_float(RESULT_MULTIPLIER)
 
@@ -287,18 +267,24 @@ def grab_income_statement_data(browser):
     except:
         result_dict['Net Income Current Year'] = 'N/A'
     try:
-        result_dict['Total Revenue Last Year'] = multiplier * \
-            convert_readable_num_to_float(browser.find_element_by_xpath\
-            (const_income_statements_xpath['total_revenue_last_year']).text)
+        if num_years == 1:
+            result_dict['Total Revenue Last Year'] = 'N/A'
+        else:
+            result_dict['Total Revenue Last Year'] = multiplier * \
+                convert_readable_num_to_float(browser.find_element_by_xpath\
+                (const_income_statements_xpath['total_revenue_last_year']).text)
     except:
         result_dict['Total Revenue Last Year'] = 'N/A'
     try:
-        result_dict['Net Income Last Year'] = multiplier * \
-            convert_readable_num_to_float(browser.find_element_by_xpath\
-            (const_income_statements_xpath['net_income_last_year']).text)
+        if num_years == 1:
+            result_dict['Net Income Last Year'] = 'N/A'
+        else:
+            result_dict['Net Income Last Year'] = multiplier * \
+                convert_readable_num_to_float(browser.find_element_by_xpath\
+                (const_income_statements_xpath['net_income_last_year']).text)
     except:
         result_dict['Net Income Last Year'] = 'N/A'
-    
+
     try:
         date_str = browser.find_element_by_xpath\
             (const_income_statements_xpath['date_this_year']).text
@@ -308,65 +294,91 @@ def grab_income_statement_data(browser):
         result_dict['Current Year'] = 'N/A'
 
     try:
-        date_str = browser.find_element_by_xpath\
-            (const_income_statements_xpath['date_last_year']).text
-        match = re.search('[0-2][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]', date_str)
-        result_dict['Previous Year'] = match.group(0)
-    except:
-        result_dict['Previous Year'] = 'N/A'
-    
-    if result_dict['Net Income Last Year'] == result_dict['Total Revenue Last Year'] == result_dict['Previous Year'] == 'N/A':
-        print "Fewer historical data, trying last column"
-        try:
-            result_dict['Net Income Last Year'] = multiplier * \
-            convert_readable_num_to_float(browser.find_element_by_xpath\
-            (const_income_statements_xpath['alt_net_income_last_year']).text)
-        except:
-            result_dict['Net Income Last Year'] = 'N/A'
-        try:
+        if num_years == 1:
+            result_dict['Previous Year'] = 'N/A'
+        else:
             date_str = browser.find_element_by_xpath\
-                (const_income_statements_xpath['alt_date_last_year']).text
+                (const_income_statements_xpath['date_last_year']).text
             match = re.search('[0-2][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]', date_str)
             result_dict['Previous Year'] = match.group(0)
-        except:
-            result_dict['Previous Year'] = 'N/A'
-        try:
-            result_dict['Total Revenue Last Year'] = multiplier * \
-                convert_readable_num_to_float(browser.find_element_by_xpath\
-                (const_income_statements_xpath['alt_total_revenue_last_year']).text)
-        except:
-            result_dict['Total Revenue Last Year'] = 'N/A'
+    except:
+        result_dict['Previous Year'] = 'N/A'
+
+    #if result_dict['Net Income Last Year'] == result_dict['Total Revenue Last Year'] == result_dict['Previous Year'] == 'N/A':
+    #    print "Fewer historical data, trying last column"
+    #    try:
+    #        result_dict['Net Income Last Year'] = multiplier * \
+    #        convert_readable_num_to_float(browser.find_element_by_xpath\
+    #        (const_income_statements_xpath['alt_net_income_last_year']).text)
+    #    except:
+    #        result_dict['Net Income Last Year'] = 'N/A'
+    #    try:
+    #        date_str = browser.find_element_by_xpath\
+    #            (const_income_statements_xpath['alt_date_last_year']).text
+    #        match = re.search('[0-2][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]', date_str)
+    #        result_dict['Previous Year'] = match.group(0)
+    #    except:
+    #        result_dict['Previous Year'] = 'N/A'
+    #    try:
+    #        result_dict['Total Revenue Last Year'] = multiplier * \
+    #            convert_readable_num_to_float(browser.find_element_by_xpath\
+    #            (const_income_statements_xpath['alt_total_revenue_last_year']).text)
+    #    except:
+    #        result_dict['Total Revenue Last Year'] = 'N/A'
 
     return result_dict
 
 def grab_balance_sheet_data(browser):
     """ TBA """
-    
+
+    const_bal_xpath_y1 = "'][1]"
+    const_bal_xpath_ylast = " rm']"
+
+    const_bal_xpath_year = """/html/body/div[@class='fjfe-bodywrapper']/div[@id='fjfe-real-body']
+        /div[@id='fjfe-click-wrapper']/div[@class='elastic']/div[@id='app']/div[@id='gf-viewc']
+        /div[@class='fjfe-content']/div[@id='balannualdiv']/table[@id='fs-table']/thead/tr/th"""
+
+    num_years = len(browser.find_elements_by_xpath(const_bal_xpath_year)) - 1
+
+    if num_years > 2:
+        y1_suffix = const_bal_xpath_y1
+    else:
+        y1_suffix = const_bal_xpath_ylast
+
     const_bal_xpath_base = """/html/body/div[@class='fjfe-bodywrapper']/div[@id='fjfe-real-body']
         /div[@id='fjfe-click-wrapper']/div[@class='elastic']/div[@id='app']/div[@id='gf-viewc']
         /div[@class='fjfe-content']/div[@id='balannualdiv']/table[@id='fs-table']"""
-
+    
     const_multiplier_xpath = """{}/thead/tr/th[@class='lm lft nwp']""".format(const_bal_xpath_base)
-    const_balance_sheet_xpaths_dict = {'cash_short_term_invest': """{}/tbody/tr[3]
-                                            /td[@class='r'][1]""".format(const_bal_xpath_base),
-                                       'total_curr_assets': """{}/tbody/tr[@class='hilite'][1]
-                                            /td[@class='r bld'][1]""".format(const_bal_xpath_base),
+    const_balance_sheet_xpaths_dict = {'cash_short_term_invest' : """{}/tbody/tr[3]
+                                            /td[@class='r{}""".format(const_bal_xpath_base,
+                                            y1_suffix),
+                                       'total_curr_assets' : """{}/tbody/tr[@class='hilite'][1]
+                                            /td[@class='r bld{}""".format(const_bal_xpath_base,
+                                            y1_suffix),
                                        'total_assets': """{}/tbody/tr[@class='hilite'][2]
-                                            /td[@class='r bld'][1]""".format(const_bal_xpath_base),
-                                       'total_curr_liab': """{}/tbody/tr[@class='hilite'][3]
-                                            /td[@class='r bld'][1]""".format(const_bal_xpath_base),
-                                       'total_debt': """{}/tbody/tr[@class='hilite'][5]
-                                            /td[@class='r bld'][1]""".format(const_bal_xpath_base),
-                                       'retained_earn': """{}/tbody/tr[36]
-                                            /td[@class='r'][1]""".format(const_bal_xpath_base),
-                                       'total_liab_s_equity': """{}/tbody/tr[@class='hilite'][8]
-                                            /td[@class='r bld'][1]""".format(const_bal_xpath_base)
+                                            /td[@class='r bld{}""".format(const_bal_xpath_base,
+                                            y1_suffix),
+                                       'total_curr_liab' : """{}/tbody/tr[@class='hilite'][3]
+                                            /td[@class='r bld{}""".format(const_bal_xpath_base,
+                                            y1_suffix),
+                                       'total_debt' : """{}/tbody/tr[@class='hilite'][5]
+                                            /td[@class='r bld{}""".format(const_bal_xpath_base,
+                                            y1_suffix),
+                                       'retained_earn' : """{}/tbody/tr[36]
+                                            /td[@class='r{}""".format(const_bal_xpath_base,
+                                            y1_suffix),
+                                       'total_liab_s_equity' : """{}/tbody/tr[@class='hilite'][8]
+                                            /td[@class='r bld{}""".format(const_bal_xpath_base,
+                                            y1_suffix)
                                       }
     result_dict = dict()
     multiplier = grab_multiplier(browser,
                                  const_multiplier_xpath) / si_suffix_to_float(RESULT_MULTIPLIER)
-
+   
+    
     try:
+        
         result_dict['Cash and Short Term Investments'] = multiplier * \
             convert_readable_num_to_float(browser.find_element_by_xpath\
             (const_balance_sheet_xpaths_dict['cash_short_term_invest']).text)
@@ -549,8 +561,7 @@ def scrape(stock_symbol):
         stock_result_dict['Fixed Assets'] = 'N/A'
         stock_result_dict['Share Equity'] = 'N/A'
         stock_result_dict['Long Term Liabilities'] = 'N/A'
-    #for key, elem in stock_result_dict.items():
-    #    print key, elem
+    
     browser_quit(browser)
     return stock_result_dict
 
