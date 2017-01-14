@@ -152,9 +152,7 @@ def grab_summary_data(browser, stock_symbol):
         result_dict['Stock Symbol'] = 'N/A'
 
     if result_dict['Stock Symbol'] != stock_symbol:
-        print "Warning 1, original: {} is not the one found: {}".\
-            format(stock_symbol, result_dict['Stock Symbol'])
-        print "Retry with NYSE"
+        print "Warning 1, {} is not in NASDAQ, retry with NYSE".format(stock_symbol)
         try:
             browser_load_url(browser, return_base_url(stock_symbol, NYSE))
             retrieved_stock_symbol = browser.find_element_by_xpath\
@@ -164,10 +162,7 @@ def grab_summary_data(browser, stock_symbol):
             result_dict['Stock Symbol'] = 'N/A'
     
     if result_dict['Stock Symbol'] != stock_symbol:
-        print "Warning 2, original: {} is not the one found: {}".\
-            format(stock_symbol, result_dict['Stock Symbol'])
-        print "Warning, original stock symbol {} not found".format(stock_symbol)
-        print "Trying empty stock exchange"
+        print "Warning 2, {} not in NYSE, retry with empty.".format(stock_symbol)
         try:
             browser_load_url(browser, return_base_url(stock_symbol))
             retrieved_stock_symbol = browser.find_element_by_xpath\
@@ -176,7 +171,7 @@ def grab_summary_data(browser, stock_symbol):
         except:
             result_dict['Stock Symbol'] = 'N/A'
     if result_dict['Stock Symbol'] != stock_symbol:
-        print "Still could not find stock, giving up"
+        print "Still could not find {}, giving up".format(stock_symbol)
     try:
         result_dict['Exchange'] = browser.find_element_by_xpath\
             (const_summary_xpaths_dict['stock_symbol']).text.strip('()').split(':')[0]
