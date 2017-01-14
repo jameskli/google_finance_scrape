@@ -203,68 +203,40 @@ def grab_summary_data(browser, stock_symbol):
     return result_dict
 def grab_income_statement_data(browser):
     """Extract data from income statement page of Google Finance, need to pass in browser object """
-    const_multipler_xpath = """/html/body/div[@class='fjfe-bodywrapper']/div[@id='fjfe-real-body']
+    const_inc_xpath_base = """/html/body/div[@class='fjfe-bodywrapper']/div[@id='fjfe-real-body']
         /div[@id='fjfe-click-wrapper']/div[@class='elastic']/div[@id='app']/div[@id='gf-viewc']
-        /div[@class='fjfe-content']/div[@id='incannualdiv']/table[@id='fs-table']/thead/tr
-        /th[@class='lm lft nwp']"""
-    const_income_statements_xpath = {'total_revenue_this_year': """/html/body
-        /div[@class='fjfe-bodywrapper']/div[@id='fjfe-real-body']/div[@id='fjfe-click-wrapper']
-        /div[@class='elastic']/div[@id='app']/div[@id='gf-viewc']/div[@class='fjfe-content']
-        /div[@id='incannualdiv']/table[@id='fs-table']/tbody/tr[@class='hilite'][1]
-        /td[@class='r bld'][1]""",
-                                     'cost_of_revenue': """/html/body/div[@class='fjfe-bodywrapper']
-        /div[@id='fjfe-real-body']/div[@id='fjfe-click-wrapper']/div[@class='elastic']
-        /div[@id='app']/div[@id='gf-viewc']/div[@class='fjfe-content']/div[@id='incannualdiv']
-        /table[@id='fs-table']/tbody/tr[4]/td[@class='r'][1]""",
-                                     'gross_profit' : """/html/body/div[@class='fjfe-bodywrapper']
-        /div[@id='fjfe-real-body']/div[@id='fjfe-click-wrapper']/div[@class='elastic']
-        /div[@id='app']/div[@id='gf-viewc']/div[@class='fjfe-content']/div[@id='incannualdiv']
-        /table[@id='fs-table']/tbody/tr[@class='hilite'][2]/td[@class='r bld'][1]""",
-                                     'sell_gen_admin_exp': """/html/body
-        /div[@class='fjfe-bodywrapper']/div[@id='fjfe-real-body']/div[@id='fjfe-click-wrapper']
-        /div[@class='elastic']/div[@id='app']/div[@id='gf-viewc']/div[@class='fjfe-content']
-        /div[@id='incannualdiv']/table[@id='fs-table']/tbody/tr[6]/td[@class='r'][1]""",
-                                     'r_and_d': """/html/body/div[@class='fjfe-bodywrapper']
-        /div[@id='fjfe-real-body']/div[@id='fjfe-click-wrapper']/div[@class='elastic']
-        /div[@id='app']/div[@id='gf-viewc']/div[@class='fjfe-content']/div[@id='incannualdiv']
-        /table[@id='fs-table']/tbody/tr[7]/td[@class='r'][1]""",
-                                     'net_income_this_year': """/html/body
-        /div[@class='fjfe-bodywrapper']/div[@id='fjfe-real-body']/div[@id='fjfe-click-wrapper']
-        /div[@class='elastic']/div[@id='app']/div[@id='gf-viewc']/div[@class='fjfe-content']
-        /div[@id='incannualdiv']/table[@id='fs-table']/tbody/tr[@class='hilite'][8]
-        /td[@class='r bld'][1]""",
-                                     'total_revenue_last_year': """/html/body
-        /div[@class='fjfe-bodywrapper']/div[@id='fjfe-real-body']/div[@id='fjfe-click-wrapper']
-        /div[@class='elastic']/div[@id='app']/div[@id='gf-viewc']/div[@class='fjfe-content']
-        /div[@id='incannualdiv']/table[@id='fs-table']/tbody/tr[@class='hilite'][1]
-        /td[@class='r bld'][2]""",
-                                     'alt_total_revenue_last_year': """/html/body
-        /div[@class='fjfe-bodywrapper']/div[@id='fjfe-real-body']/div[@id='fjfe-click-wrapper']
-        /div[@class='elastic']/div[@id='app']/div[@id='gf-viewc']/div[@class='fjfe-content']
-        /div[@id='incannualdiv']/table[@id='fs-table']/tbody/tr[@class='hilite'][1]
-        /td[@class='r bld rm']""",
-                                     'net_income_last_year': """/html/body
-        /div[@class='fjfe-bodywrapper']/div[@id='fjfe-real-body']/div[@id='fjfe-click-wrapper']
-        /div[@class='elastic']/div[@id='app']/div[@id='gf-viewc']/div[@class='fjfe-content']
-        /div[@id='incannualdiv']/table[@id='fs-table']/tbody/tr[@class='hilite'][8]
-        /td[@class='r bld'][2]""",
-                                    'alt_net_income_last_year': """/html/body
-        /div[@class='fjfe-bodywrapper']/div[@id='fjfe-real-body']/div[@id='fjfe-click-wrapper']
-        /div[@class='elastic']/div[@id='app']/div[@id='gf-viewc']/div[@class='fjfe-content']
-        /div[@id='incannualdiv']/table[@id='fs-table']/tbody/tr[@class='hilite'][8]
-        /td[@class='r bld rm']""",
-                                     'date_this_year': """/html/body/div[@class='fjfe-bodywrapper']
-        /div[@id='fjfe-real-body']/div[@id='fjfe-click-wrapper']/div[@class='elastic']
-        /div[@id='app']/div[@id='gf-viewc']/div[@class='fjfe-content']/div[@id='incannualdiv']
-        /table[@id='fs-table']/thead/tr/th[@class='rgt'][1]""",
-                                     'date_last_year': """/html/body/div[@class='fjfe-bodywrapper']
-        /div[@id='fjfe-real-body']/div[@id='fjfe-click-wrapper']/div[@class='elastic']
-        /div[@id='app']/div[@id='gf-viewc']/div[@class='fjfe-content']/div[@id='incannualdiv']
-        /table[@id='fs-table']/thead/tr/th[@class='rgt'][2]""",
-                                     'alt_date_last_year': """/html/body
-        /div[@class='fjfe-bodywrapper']/div[@id='fjfe-real-body']/div[@id='fjfe-click-wrapper']
-        /div[@class='elastic']/div[@id='app']/div[@id='gf-viewc']/div[@class='fjfe-content']
-        /div[@id='incannualdiv']/table[@id='fs-table']/thead/tr/th[@class='rgt rm']"""}
+        /div[@class='fjfe-content']/div[@id='incannualdiv']/table[@id='fs-table']"""
+    
+    const_multipler_xpath =  """{}/thead/tr/th[@class='lm lft nwp']""".format(const_inc_xpath_base)
+    
+    const_income_statements_xpath = {'total_revenue_this_year': """{}/tbody/tr[@class='hilite'][1]
+                                            /td[@class='r bld'][1]""".format(const_inc_xpath_base),
+                                     'cost_of_revenue': """{}/tbody/tr[4]
+                                            /td[@class='r'][1]""".format(const_inc_xpath_base),
+                                     'gross_profit' : """{}/tbody/tr[@class='hilite'][2]
+                                            /td[@class='r bld'][1]""".format(const_inc_xpath_base),
+                                     'sell_gen_admin_exp': """{}/tbody/tr[6]
+                                            /td[@class='r'][1]""".format(const_inc_xpath_base),
+                                     'r_and_d': """{}/tbody/tr[7]
+                                            /td[@class='r'][1]""".format(const_inc_xpath_base),
+                                     'net_income_this_year': """{}/tbody/tr[@class='hilite'][8]
+                                            /td[@class='r bld'][1]""".format(const_inc_xpath_base),
+                                     'total_revenue_last_year': """{}/tbody/tr[@class='hilite'][1]
+                                            /td[@class='r bld'][2]""".format(const_inc_xpath_base),
+                                     'alt_total_revenue_last_year': """{}/tbody
+                                            /tr[@class='hilite'][1]
+                                            /td[@class='r bld rm']""".format(const_inc_xpath_base),
+                                     'net_income_last_year': """{}/tbody/tr[@class='hilite'][8]
+                                            /td[@class='r bld'][2]""".format(const_inc_xpath_base),
+                                     'alt_net_income_last_year': """{}/tbody/tr[@class='hilite'][8]
+                                            /td[@class='r bld rm']""".format(const_inc_xpath_base),
+                                     'date_this_year': """{}/thead/tr
+                                            /th[@class='rgt'][1]""".format(const_inc_xpath_base),
+                                     'date_last_year': """{}/thead/tr
+                                            /th[@class='rgt'][2]""".format(const_inc_xpath_base),
+                                     'alt_date_last_year': """{}/thead/tr
+                                            /th[@class='rgt rm']""".format(const_inc_xpath_base)
+                                    }
     result_dict = dict()
 
     multiplier = grab_multiplier(browser,
@@ -361,41 +333,27 @@ def grab_income_statement_data(browser):
 
 def grab_balance_sheet_data(browser):
     """ TBA """
-    const_multiplier_xpath = """/html/body/div[@class='fjfe-bodywrapper']
-        /div[@id='fjfe-real-body']/div[@id='fjfe-click-wrapper']/div[@class='elastic']
-        /div[@id='app']/div[@id='gf-viewc']/div[@class='fjfe-content']/div[@id='balannualdiv']
-        /table[@id='fs-table']/thead/tr/th[@class='lm lft nwp']"""
-    const_balance_sheet_xpaths_dict = {'cash_short_term_invest': """/html/body
-        /div[@class='fjfe-bodywrapper']/div[@id='fjfe-real-body']/div[@id='fjfe-click-wrapper']
-        /div[@class='elastic']/div[@id='app']/div[@id='gf-viewc']/div[@class='fjfe-content']
-        /div[@id='balannualdiv']/table[@id='fs-table']/tbody/tr[3]/td[@class='r'][1]""",
-                                       'total_curr_assets': """/html/body
-        /div[@class='fjfe-bodywrapper']/div[@id='fjfe-real-body']/div[@id='fjfe-click-wrapper']
-        /div[@class='elastic']/div[@id='app']/div[@id='gf-viewc']/div[@class='fjfe-content']
-        /div[@id='balannualdiv']/table[@id='fs-table']/tbody/tr[@class='hilite'][1]
-        /td[@class='r bld'][1]""",
-                                       'total_assets': """/html/body/div[@class='fjfe-bodywrapper']
-        /div[@id='fjfe-real-body']/div[@id='fjfe-click-wrapper']/div[@class='elastic']
-        /div[@id='app']/div[@id='gf-viewc']/div[@class='fjfe-content']/div[@id='balannualdiv']
-        /table[@id='fs-table']/tbody/tr[@class='hilite'][2]/td[@class='r bld'][1]""",
-                                       'total_curr_liab': """/html/body
-        /div[@class='fjfe-bodywrapper']/div[@id='fjfe-real-body']/div[@id='fjfe-click-wrapper']
-        /div[@class='elastic']/div[@id='app']/div[@id='gf-viewc']/div[@class='fjfe-content']
-        /div[@id='balannualdiv']/table[@id='fs-table']/tbody/tr[@class='hilite'][3]
-        /td[@class='r bld'][1]""",
-                                       'total_debt': """/html/body/div[@class='fjfe-bodywrapper']
-        /div[@id='fjfe-real-body']/div[@id='fjfe-click-wrapper']/div[@class='elastic']
-        /div[@id='app']/div[@id='gf-viewc']/div[@class='fjfe-content']/div[@id='balannualdiv']
-        /table[@id='fs-table']/tbody/tr[@class='hilite'][5]/td[@class='r bld'][1]""",
-                                       'retained_earn': """/html/body/div[@class='fjfe-bodywrapper']
-        /div[@id='fjfe-real-body']/div[@id='fjfe-click-wrapper']/div[@class='elastic']
-        /div[@id='app']/div[@id='gf-viewc']/div[@class='fjfe-content']/div[@id='balannualdiv']
-        /table[@id='fs-table']/tbody/tr[36]/td[@class='r'][1]""",
-                                       'total_liab_s_equity': """/html/body
-        /div[@class='fjfe-bodywrapper']/div[@id='fjfe-real-body']/div[@id='fjfe-click-wrapper']
-        /div[@class='elastic']/div[@id='app']/div[@id='gf-viewc']/div[@class='fjfe-content']
-        /div[@id='balannualdiv']/table[@id='fs-table']/tbody/tr[@class='hilite'][8]
-        /td[@class='r bld'][1]"""}
+    
+    const_bal_xpath_base = """/html/body/div[@class='fjfe-bodywrapper']/div[@id='fjfe-real-body']
+        /div[@id='fjfe-click-wrapper']/div[@class='elastic']/div[@id='app']/div[@id='gf-viewc']
+        /div[@class='fjfe-content']/div[@id='balannualdiv']/table[@id='fs-table']"""
+
+    const_multiplier_xpath = """{}/thead/tr/th[@class='lm lft nwp']""".format(const_bal_xpath_base)
+    const_balance_sheet_xpaths_dict = {'cash_short_term_invest': """{}/tbody/tr[3]
+                                            /td[@class='r'][1]""".format(const_bal_xpath_base),
+                                       'total_curr_assets': """{}/tbody/tr[@class='hilite'][1]
+                                            /td[@class='r bld'][1]""".format(const_bal_xpath_base),
+                                       'total_assets': """{}/tbody/tr[@class='hilite'][2]
+                                            /td[@class='r bld'][1]""".format(const_bal_xpath_base),
+                                       'total_curr_liab': """{}/tbody/tr[@class='hilite'][3]
+                                            /td[@class='r bld'][1]""".format(const_bal_xpath_base),
+                                       'total_debt': """{}/tbody/tr[@class='hilite'][5]
+                                            /td[@class='r bld'][1]""".format(const_bal_xpath_base),
+                                       'retained_earn': """{}/tbody/tr[36]
+                                            /td[@class='r'][1]""".format(const_bal_xpath_base),
+                                       'total_liab_s_equity': """{}/tbody/tr[@class='hilite'][8]
+                                            /td[@class='r bld'][1]""".format(const_bal_xpath_base)
+                                      }
     result_dict = dict()
     multiplier = grab_multiplier(browser,
                                  const_multiplier_xpath) / si_suffix_to_float(RESULT_MULTIPLIER)
