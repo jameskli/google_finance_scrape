@@ -160,7 +160,7 @@ def grab_summary_data(browser, stock_symbol):
             result_dict['Stock Symbol'] = retrieved_stock_symbol
         except:
             result_dict['Stock Symbol'] = 'N/A'
-    
+
     if result_dict['Stock Symbol'] != stock_symbol:
         print "Warning 2, {} not in NYSE, retry with empty.".format(stock_symbol)
         try:
@@ -518,15 +518,14 @@ def scrape(stock_symbol):
     /div[@id='fjfe-click-wrapper']/div[@class='elastic']/div[@id='app']/div[@id='gf-viewc']
     /div[@class='fjfe-content']/div[3]"""
     browser = initialize_browser()
-    browser_load_url(browser, return_base_url(stock_symbol, NASDAQ)) # assume NASDAQ 
-    
-    try:
-        if browser.find_element_by_xpath(const_page_not_found_evidence).text:
-            print "Not on NASDAQ try NYSE"
-            browser_load_url(browser, return_base_url(stock_symbol, NYSE)) # try NYSE
-    except common.exceptions.NoSuchElementException:
-        pass
-        
+    browser_load_url(browser, return_base_url(stock_symbol, NASDAQ)) # assume NASDAQ
+
+#    try:
+#        if browser.find_element_by_xpath(const_page_not_found_evidence).text:
+#            print "Not on NASDAQ try NYSE"
+#            browser_load_url(browser, return_base_url(stock_symbol, NYSE)) # try NYSE
+#    except common.exceptions.NoSuchElementException:
+#        pass
 
     stock_result_dict = dict()
     stock_result_dict.update(grab_summary_data(browser, stock_symbol))
