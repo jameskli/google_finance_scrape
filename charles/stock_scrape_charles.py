@@ -504,9 +504,15 @@ def scrape(stock_symbol):
         /div[@id='fjfe-real-body']/div[@id='fjfe-click-wrapper']/div[@class='elastic']
         /div[@id='app']/div[@id='gf-viewc']/div[@class='fjfe-content']
         /div[@class='gf-table-control-plain']/div[@class='gf-control']/a[@id='annual']"""}
-
+    const_page_not_found_evidence = """/html/body/div[@class='fjfe-bodywrapper']/div[@id='fjfe-real-body']
+    /div[@id='fjfe-click-wrapper']/div[@class='elastic']/div[@id='app']/div[@id='gf-viewc']
+    /div[@class='fjfe-content']/div[3]"""
     browser = initialize_browser()
     browser_load_url(browser, return_base_url(stock_symbol, NASDAQ)) # assume NASDAQ 
+    if browser.find_element_by_xpath(const_test_contains).text:
+        print "Not on NASDAQ try NYSE"
+        browser_load_url(browser, return_base_url(stock_symbol, NYSE)) # try NYSE
+
     stock_result_dict = dict()
     stock_result_dict.update(grab_summary_data(browser, stock_symbol))
     loaded_financial_data = True
