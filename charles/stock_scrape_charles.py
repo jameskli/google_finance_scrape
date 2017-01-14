@@ -71,9 +71,7 @@ def return_base_url(stock_symbol, exchange=None):
     """
     ## URL CONSTANTS
     const_base_url = 'https://www.google.com/finance?q='
-    const_nasdaq_url_prefix = 'NASDAQ%3A'
-    const_nyse_url_prefix = 'NYSE%3A'
-    const_tse_url_prefix = 'TSE%3A'
+
     if not exchange:
         return const_base_url + stock_symbol
     else:
@@ -149,24 +147,36 @@ def grab_summary_data(browser, stock_symbol):
     try:
         retrieved_stock_symbol = browser.find_element_by_xpath\
             (const_summary_xpaths_dict['stock_symbol']).text.strip('()').split(':')[1]
-        if retrieved_stock_symbol == stock_symbol:
-            result_dict['Stock Symbol'] = retrieved_stock_symbol
-        else:
-            print "Warning, original: {} is not the one found {}".\
-                format(stock_symbol, retrieved_stock_symbol)
-            try:
-                browser_load_url(browser, return_base_url(stock_symbol, NYSE))
-                retrieved_stock_symbol = browser.find_element_by_xpath\
-                    (const_summary_xpaths_dict['stock_symbol']).text.strip('()').split(':')[1]
-                if retrieved_stock_symbol == stock_symbol:
-                    result_dict['Stock Symbol'] = retrieved_stock_symbol
-                else:
-                    print "Second time around, still did not work"
-            except:
-                result_dict['Stock Symbol'] = 'N/A'
-
+        result_dict['Stock Symbol'] = retrieved_stock_symbol
     except:
         result_dict['Stock Symbol'] = 'N/A'
+
+    if result_dict['Stock Symbol'] != stock_symbol:
+        print "Warning 1, original: {} is not the one found: {}".\
+            format(stock_symbol, result_dict['Stock Symbol'])
+        print "Retry with NYSE"
+        try:
+            browser_load_url(browser, return_base_url(stock_symbol, NYSE))
+            retrieved_stock_symbol = browser.find_element_by_xpath\
+                (const_summary_xpaths_dict['stock_symbol']).text.strip('()').split(':')[1]
+            result_dict['Stock Symbol'] = retrieved_stock_symbol
+        except:
+            result_dict['Stock Symbol'] = 'N/A'
+    
+    if result_dict['Stock Symbol'] != stock_symbol:
+        print "Warning 2, original: {} is not the one found: {}".\
+            format(stock_symbol, result_dict['Stock Symbol'])
+        print "Warning, original stock symbol {} not found".format(stock_symbol)
+        print "Trying empty stock exchange"
+        try:
+            browser_load_url(browser, return_base_url(stock_symbol))
+            retrieved_stock_symbol = browser.find_element_by_xpath\
+                (const_summary_xpaths_dict['stock_symbol']).text.strip('()').split(':')[1]
+            result_dict['Stock Symbol'] = retrieved_stock_symbol
+        except:
+            result_dict['Stock Symbol'] = 'N/A'
+    if result_dict['Stock Symbol'] != stock_symbol:
+        print "Still could not find stock, giving up"
     try:
         result_dict['Exchange'] = browser.find_element_by_xpath\
             (const_summary_xpaths_dict['stock_symbol']).text.strip('()').split(':')[0]
@@ -529,7 +539,6 @@ def scrape(stock_symbol):
     loaded_income_statement = True
     loaded_balance_sheet = True
     try:
-        print stock_result_dict['Exchange']
         browser_load_url(browser, return_finance_url(stock_symbol, stock_result_dict['Exchange']))
     except:
         print "Could not load Financial Data"
