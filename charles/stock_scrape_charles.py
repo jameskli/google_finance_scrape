@@ -117,32 +117,40 @@ def grab_summary_data(browser, stock_symbol):
     """Retrieves basic information from Finance Website, eg
     stock name, symbol, current PE ratio, last price
     """
-    const_summary_xpaths_dict = {'stock_name': """/html/body/div[@class='fjfe-bodywrapper']
-        /div[@id='fjfe-real-body']/div[@id='fjfe-click-wrapper']/div[@id='appbar']
-        /div[@class='elastic']/div[@class='appbar-center']
-        /div[@class='appbar-snippet-primary']/span""",
-                                 'stock_symbol': """/html/body/div[@class='fjfe-bodywrapper']
-        /div[@id='fjfe-real-body']/div[@id='fjfe-click-wrapper']/div[@id='appbar']
-        /div[@class='elastic']/div[@class='appbar-center']
-        /div[@class='appbar-snippet-secondary']/span""",
-                                 'current_pe': """/html/body/div[@class='fjfe-bodywrapper']
-        /div[@id='fjfe-real-body']/div[@id='fjfe-click-wrapper']/div[@class='elastic']
-        /div[@id='app']/div[@id='gf-viewc']/div[@class='fjfe-content']/div[@class='g-wrap']
-        /div[@class='g-section g-tpl-right-1']/div[@class='g-unit']/div[@id='market-data-div']
-        /div[@class='snap-panel-and-plusone']/div[@class='snap-panel']/table[@class='snap-data']
-        [1]/tbody/tr[6]/td[@class='val']""",
-                                 'employees': """/html/body/div[@class='fjfe-bodywrapper']
-        /div[@id='fjfe-real-body']/div[@id='fjfe-click-wrapper']/div[@class='elastic']
-        /div[@id='app']/div[@id='gf-viewc']/div[@class='fjfe-content']/div[@class='g-wrap']
-        /div[@class='g-section g-tpl-right-1 sfe-break-top-5']/div[@class='g-unit g-first']
-        /div[@class='g-c']/div[@class='sfe-section'][1]/table[@class='quotes rgt nwp']/tbody/tr[6]
-        /td[@class='period'][1]""",
-                                 'market_cap': """/html/body/div[@class='fjfe-bodywrapper']
-        /div[@id='fjfe-real-body']/div[@id='fjfe-click-wrapper']/div[@class='elastic']
-        /div[@id='app']/div[@id='gf-viewc']/div[@class='fjfe-content']/div[@class='g-wrap']
-        /div[@class='g-section g-tpl-right-1']/div[@class='g-unit']/div[@id='market-data-div']
-        /div[@class='snap-panel-and-plusone']/div[@class='snap-panel']/table[@class='snap-data'][1]
-        /tbody/tr[5]/td[@class='val']"""}
+    const_sum_xpath_base = """/html/body/div[@class='fjfe-bodywrapper']
+        /div[@id='fjfe-real-body']/div[@id='fjfe-click-wrapper']"""
+    const_summary_xpaths_dict = {'stock_name': """{}/div[@id='appbar']/div[@class='elastic']
+                                    /div[@class='appbar-center']
+                                    /div[@class='appbar-snippet-primary']
+                                    /span""".format(const_sum_xpath_base),
+                                 'stock_symbol': """{}/div[@id='appbar']/div[@class='elastic']
+                                    /div[@class='appbar-center']
+                                    /div[@class='appbar-snippet-secondary']
+                                    /span""".format(const_sum_xpath_base),
+                                 'current_pe': """{}/div[@class='elastic']/div[@id='app']
+                                    /div[@id='gf-viewc']/div[@class='fjfe-content']
+                                    /div[@class='g-wrap']/div[@class='g-section g-tpl-right-1']
+                                    /div[@class='g-unit']/div[@id='market-data-div']
+                                    /div[@class='snap-panel-and-plusone']/div[@class='snap-panel']
+                                    /table[@class='snap-data'][1]/tbody/tr[6]
+                                    /td[@class='val']""".format(const_sum_xpath_base),
+                                 'employees': """{}/div[@class='elastic']/div[@id='app']
+                                    /div[@id='gf-viewc']/div[@class='fjfe-content']
+                                    /div[@class='g-wrap']
+                                    /div[@class='g-section g-tpl-right-1 sfe-break-top-5']
+                                    /div[@class='g-unit g-first']/div[@class='g-c']
+                                    /div[@class='sfe-section'][1]/table[@class='quotes rgt nwp']
+                                    /tbody/tr[6]
+                                    /td[@class='period'][1]""".format(const_sum_xpath_base),
+                                 'market_cap': """{}/div[@class='elastic']/div[@id='app']
+                                    /div[@id='gf-viewc']/div[@class='fjfe-content']
+                                    /div[@class='g-wrap']/div[@class='g-section g-tpl-right-1']
+                                    /div[@class='g-unit']/div[@id='market-data-div']
+                                    /div[@class='snap-panel-and-plusone']/div[@class='snap-panel']
+                                    /table[@class='snap-data'][1]/tbody/tr[5]
+                                    /td[@class='val']""".format(const_sum_xpath_base)
+                                }
+
     result_dict = dict()
     try:
         retrieved_stock_symbol = browser.find_element_by_xpath\
@@ -206,9 +214,9 @@ def grab_income_statement_data(browser):
     const_inc_xpath_base = """/html/body/div[@class='fjfe-bodywrapper']/div[@id='fjfe-real-body']
         /div[@id='fjfe-click-wrapper']/div[@class='elastic']/div[@id='app']/div[@id='gf-viewc']
         /div[@class='fjfe-content']/div[@id='incannualdiv']/table[@id='fs-table']"""
-    
-    const_multipler_xpath =  """{}/thead/tr/th[@class='lm lft nwp']""".format(const_inc_xpath_base)
-    
+
+    const_multipler_xpath = """{}/thead/tr/th[@class='lm lft nwp']""".format(const_inc_xpath_base)
+
     const_income_statements_xpath = {'total_revenue_this_year': """{}/tbody/tr[@class='hilite'][1]
                                             /td[@class='r bld'][1]""".format(const_inc_xpath_base),
                                      'cost_of_revenue': """{}/tbody/tr[4]
