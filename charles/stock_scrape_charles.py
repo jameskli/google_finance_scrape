@@ -1,17 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""Module scrapes and analyzes stock data"""
+"""Module scrapes data from Google Finance"""
 
 import re
 import datetime as datetime
 from random import randint
 import time
-import math
 import csv
 import os
 import sys
 from selenium import webdriver
-from selenium import common
 
 ## GLOBAL CONSTANTS
 NASDAQ = "NASDAQ"
@@ -37,12 +35,7 @@ def return_finance_url(stock_symbol, exchange):
     const_financial_url_path = '&fstype=ii'
     return return_base_url(stock_symbol, exchange) + const_financial_url_path
 def initialize_browser():
-    """Initialize browser, also includes using an adblocker"""
-    # const_adblock_xpi_path = 'res/adblock_plus-2.8.2-an+fx+sm+tb.xpi'
-    # load Firefox with adblock plus enabled
-    # ABP has a problem with FirstRun, so I chose uBlock Origin instead
-
-    # I dont think this is 100 percent fixed
+    """Initialize browser, also includes using an adblocker, but I dont think it quite works"""
     const_adblock_xpi_path = 'res/uBlock0.firefox.xpi'  # load Firefox with uBlock Origin enabled
     ffprofile = webdriver.FirefoxProfile()
     ffprofile.add_extension(const_adblock_xpi_path)
@@ -66,10 +59,9 @@ def browser_xpath_click(browser, xpath_string):
     browser.find_element_by_xpath(xpath_string).click()
     browser_wait()
 
-
 def grab_summary_data(browser, stock_symbol):
-    """Retrieves basic information from Finance Website, eg
-    stock name, symbol, current PE ratio, last price
+    """Retrieves basic information from a stock's Summary page , eg
+    stock name, symbol, current PE ratio, market cap, employees
     """
     const_sum_xpath_base = """/html/body/div[@class='fjfe-bodywrapper']
         /div[@id='fjfe-real-body']/div[@id='fjfe-click-wrapper']"""
@@ -163,9 +155,11 @@ def grab_summary_data(browser, stock_symbol):
         result_dict['Current PE Ratio'] = 'N/A'
 
     return result_dict
+
 def grab_income_statement_data(browser):
     """Extract data from income statement page of Google Finance, need to pass in browser object """
 
+    # different columns end with different Xpaths
     const_bal_xpath_y1 = "'][1]"
     const_bal_xpath_ylast = " rm']"
     const_bal_xpath_y2 = "'][2]"
@@ -173,7 +167,8 @@ def grab_income_statement_data(browser):
     const_inc_xpath_year = """/html/body/div[@class='fjfe-bodywrapper']/div[@id='fjfe-real-body']
         /div[@id='fjfe-click-wrapper']/div[@class='elastic']/div[@id='app']/div[@id='gf-viewc']
         /div[@class='fjfe-content']/div[@id='incannualdiv']/table[@id='fs-table']/thead/tr/th"""
-
+    
+    # num years to handle which columns refer to this year vs previous year etc.
     num_years = len(browser.find_elements_by_xpath(const_inc_xpath_year)) - 1
 
     if num_years == 1:
@@ -226,7 +221,7 @@ def grab_income_statement_data(browser):
                                                                         y2_suffix)
                                     }
     result_dict = dict()
-    
+
     multiplier = grab_multiplier(browser,
                                  const_multipler_xpath) / si_suffix_to_float(RESULT_MULTIPLIER)
 
@@ -304,32 +299,10 @@ def grab_income_statement_data(browser):
     except:
         result_dict['Previous Year'] = 'N/A'
 
-    #if result_dict['Net Income Last Year'] == result_dict['Total Revenue Last Year'] == result_dict['Previous Year'] == 'N/A':
-    #    print "Fewer historical data, trying last column"
-    #    try:
-    #        result_dict['Net Income Last Year'] = multiplier * \
-    #        convert_readable_num_to_float(browser.find_element_by_xpath\
-    #        (const_income_statements_xpath['alt_net_income_last_year']).text)
-    #    except:
-    #        result_dict['Net Income Last Year'] = 'N/A'
-    #    try:
-    #        date_str = browser.find_element_by_xpath\
-    #            (const_income_statements_xpath['alt_date_last_year']).text
-    #        match = re.search('[0-2][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]', date_str)
-    #        result_dict['Previous Year'] = match.group(0)
-    #    except:
-    #        result_dict['Previous Year'] = 'N/A'
-    #    try:
-    #        result_dict['Total Revenue Last Year'] = multiplier * \
-    #            convert_readable_num_to_float(browser.find_element_by_xpath\
-    #            (const_income_statements_xpath['alt_total_revenue_last_year']).text)
-    #    except:
-    #        result_dict['Total Revenue Last Year'] = 'N/A'
-
     return result_dict
 
 def grab_balance_sheet_data(browser):
-    """ TBA """
+    """ Extract data from Annual Balance Sheet page of a Stock """
 
     const_bal_xpath_y1 = "'][1]"
     const_bal_xpath_ylast = " rm']"
@@ -338,6 +311,7 @@ def grab_balance_sheet_data(browser):
         /div[@id='fjfe-click-wrapper']/div[@class='elastic']/div[@id='app']/div[@id='gf-viewc']
         /div[@class='fjfe-content']/div[@id='balannualdiv']/table[@id='fs-table']/thead/tr/th"""
 
+    # num_years to handle which column refers to this year vs previous year etc.
     num_years = len(browser.find_elements_by_xpath(const_bal_xpath_year)) - 1
 
     if num_years > 2:
@@ -348,37 +322,34 @@ def grab_balance_sheet_data(browser):
     const_bal_xpath_base = """/html/body/div[@class='fjfe-bodywrapper']/div[@id='fjfe-real-body']
         /div[@id='fjfe-click-wrapper']/div[@class='elastic']/div[@id='app']/div[@id='gf-viewc']
         /div[@class='fjfe-content']/div[@id='balannualdiv']/table[@id='fs-table']"""
-    
+
     const_multiplier_xpath = """{}/thead/tr/th[@class='lm lft nwp']""".format(const_bal_xpath_base)
     const_balance_sheet_xpaths_dict = {'cash_short_term_invest' : """{}/tbody/tr[3]
                                             /td[@class='r{}""".format(const_bal_xpath_base,
-                                            y1_suffix),
+                                                                      y1_suffix),
                                        'total_curr_assets' : """{}/tbody/tr[@class='hilite'][1]
                                             /td[@class='r bld{}""".format(const_bal_xpath_base,
-                                            y1_suffix),
+                                                                          y1_suffix),
                                        'total_assets': """{}/tbody/tr[@class='hilite'][2]
                                             /td[@class='r bld{}""".format(const_bal_xpath_base,
-                                            y1_suffix),
+                                                                          y1_suffix),
                                        'total_curr_liab' : """{}/tbody/tr[@class='hilite'][3]
                                             /td[@class='r bld{}""".format(const_bal_xpath_base,
-                                            y1_suffix),
+                                                                          y1_suffix),
                                        'total_debt' : """{}/tbody/tr[@class='hilite'][5]
                                             /td[@class='r bld{}""".format(const_bal_xpath_base,
-                                            y1_suffix),
+                                                                          y1_suffix),
                                        'retained_earn' : """{}/tbody/tr[36]
                                             /td[@class='r{}""".format(const_bal_xpath_base,
-                                            y1_suffix),
+                                                                      y1_suffix),
                                        'total_liab_s_equity' : """{}/tbody/tr[@class='hilite'][8]
                                             /td[@class='r bld{}""".format(const_bal_xpath_base,
-                                            y1_suffix)
+                                                                          y1_suffix)
                                       }
     result_dict = dict()
     multiplier = grab_multiplier(browser,
                                  const_multiplier_xpath) / si_suffix_to_float(RESULT_MULTIPLIER)
-   
-    
     try:
-        
         result_dict['Cash and Short Term Investments'] = multiplier * \
             convert_readable_num_to_float(browser.find_element_by_xpath\
             (const_balance_sheet_xpaths_dict['cash_short_term_invest']).text)
@@ -423,7 +394,9 @@ def grab_balance_sheet_data(browser):
 
     return result_dict
 def convert_readable_num_to_float(num_as_string, desired_base_unit=None):
-    """ TBA """
+    """ converts dollar numbers as str into floats with a multiplication factor,
+    eg 1,000,000 expressed in thousands ('K') becomes 1000.0 """
+
     stripped_string = num_as_string.replace(',', '')
     if stripped_string == '-':
         stripped_string = '0'
@@ -450,17 +423,8 @@ def si_suffix_to_float(suffix_string):
     else:
         return 1.0
 
-def grab_financials_row_data(browser, xpath_string):
-    """Returns a row from finance website"""
-    raw_output_list = browser.find_elements_by_xpath(xpath_string)
-    output_list = list()
-
-    for item in raw_output_list:
-        output_list.append(item.text)
-
-    return output_list
 def grab_multiplier(browser, xpath_string):
-    """Returns multiplication factor for financials info, e.g. usually Millions"""
+    """Read the multiplication factor for financials info, e.g. usually Millions, returns float"""
     raw_string = browser.find_element_by_xpath(xpath_string).text
     if 'million' in raw_string.lower():
         return 1000000.0
@@ -469,9 +433,9 @@ def grab_multiplier(browser, xpath_string):
     else:
         return 1.0
 def clean_up_stock_symbol(input_stock_symbol):
-    """handles stock symbols with whitespace, but also, those that use hats ^ 
+    """Handles stock symbols with whitespace, but also, those that use hats ^
     to distinguish stock_classes eg DD^B for B class DD shares, should be DD-B"""
-    return input_stock_symbol.strip().replace('^','-')
+    return input_stock_symbol.strip().replace('^', '-')
 def scrape(stock_symbol):
     """Visits website to scrape data on stock_symbol in exchange."""
     ## SELENIUM PATH CONSTANTS
@@ -492,18 +456,11 @@ def scrape(stock_symbol):
         /div[@id='fjfe-real-body']/div[@id='fjfe-click-wrapper']/div[@class='elastic']
         /div[@id='app']/div[@id='gf-viewc']/div[@class='fjfe-content']
         /div[@class='gf-table-control-plain']/div[@class='gf-control']/a[@id='annual']"""}
-    const_page_not_found_evidence = """/html/body/div[@class='fjfe-bodywrapper']/div[@id='fjfe-real-body']
-    /div[@id='fjfe-click-wrapper']/div[@class='elastic']/div[@id='app']/div[@id='gf-viewc']
-    /div[@class='fjfe-content']/div[3]"""
+    const_page_not_found_evidence = """/html/body/div[@class='fjfe-bodywrapper']
+    /div[@id='fjfe-real-body']/div[@id='fjfe-click-wrapper']/div[@class='elastic']
+    /div[@id='app']/div[@id='gf-viewc']/div[@class='fjfe-content']/div[3]"""
     browser = initialize_browser()
     browser_load_url(browser, return_base_url(stock_symbol, NASDAQ)) # assume NASDAQ
-
-#    try:
-#        if browser.find_element_by_xpath(const_page_not_found_evidence).text:
-#            print "Not on NASDAQ try NYSE"
-#            browser_load_url(browser, return_base_url(stock_symbol, NYSE)) # try NYSE
-#    except common.exceptions.NoSuchElementException:
-#        pass
 
     stock_result_dict = dict()
     stock_result_dict.update(grab_summary_data(browser, stock_symbol))
@@ -561,13 +518,13 @@ def scrape(stock_symbol):
         stock_result_dict['Fixed Assets'] = 'N/A'
         stock_result_dict['Share Equity'] = 'N/A'
         stock_result_dict['Long Term Liabilities'] = 'N/A'
-    
+
     browser_quit(browser)
     return stock_result_dict
 
 def scrape_and_write_to_file(stock_symbol, results_filename, results_dir_name):
     """Main function to scrape and analyze, split up into scrape and analyze steps"""
-    
+
     result_order_list = ['Stock Symbol', 'Exchange', 'Stock Name', 'Current Year', 'Previous Year',
                          'Total Revenue Current Year', 'Cost of Revenue Total', 'Gross Profit',
                          'Selling General Admin Expenses', 'Research and Development', 'Other',
@@ -586,7 +543,6 @@ def scrape_and_write_to_file(stock_symbol, results_filename, results_dir_name):
         os.makedirs(results_dir_name)
     results_fullpath = '{}/{}'.format(results_dir_name, results_filename)
 
-
     if not os.path.exists(results_fullpath):
         print "Saving in", results_fullpath
         with open(results_fullpath, 'w') as results_file:
@@ -598,9 +554,11 @@ def scrape_and_write_to_file(stock_symbol, results_filename, results_dir_name):
         csv_writer.writerow([stock_results_dict[item] for item in result_order_list])
 
 def process_dir(data_dir_name, logs_dir_name, results_dir_name):
-    """TBA"""
+    """Goes through data needs, the directory names for data, where to put results, where to log 
+    output"""
+
     print "Begin batch processing"
-    
+
     if not os.path.exists('{}'.format(logs_dir_name)):
         os.makedirs(logs_dir_name)
 
@@ -611,9 +569,9 @@ def process_dir(data_dir_name, logs_dir_name, results_dir_name):
 
     file_list = [f for f in os.listdir(data_dir_name) if f.endswith(".csv") and\
                  os.path.isfile(os.path.join(data_dir_name, f))]
-    
+
     with open(master_log_fullpath, 'w') as master_log:
-                master_log.writelines('{} Begin batch processing\n'.format(datetime.datetime.now()))
+        master_log.writelines('{} Begin batch processing\n'.format(datetime.datetime.now()))
     sys.stdout.flush()
     for item in file_list:
         try:
@@ -622,14 +580,16 @@ def process_dir(data_dir_name, logs_dir_name, results_dir_name):
                 master_log.writelines('{} finished: {}\n'.format(datetime.datetime.now(), item))
         except IOError:
             with open(master_log_fullpath, 'a+') as master_log:
-                master_log.writelines('{} could not process: {}\n'.format(datetime.datetime.now(), item))
-        sys.stdout.flush()        
+                master_log.writelines('{} could not process: {}\n'.\
+                    format(datetime.datetime.now(), item))
+        sys.stdout.flush() # forces an output to std
     print "Batch processing ended"
     with open(master_log_fullpath, 'a+') as master_log:
-                master_log.writelines('{} Batch processing ended\n'.format(datetime.datetime.now()))            
+        master_log.writelines('{} Batch processing ended\n'.format(datetime.datetime.now()))
     sys.stdout.flush()
 def process_file(work_filename, data_dir_name, logs_dir_name, results_dir_name):
-    """TBA"""
+    """works on work_filename, requires where to grab data, write results and logs to"""
+    
     print "File: ", work_filename
     if not os.path.exists('{}'.format(logs_dir_name)):
         os.makedirs(logs_dir_name)
@@ -650,12 +610,14 @@ def process_file(work_filename, data_dir_name, logs_dir_name, results_dir_name):
     with open(work_fullpath, 'rU') as work_file:
         csv_reader = csv.reader(work_file, delimiter=',', quotechar='"')
         #csv_reader = csv.reader(work_file, delimiter='\t', quotechar="'")
+        # I need to figure out so as not to keep swapping betwee tab and comma delimited
         row_count = sum(1 for row in csv_reader)
 
     if row_to_work_on >= 0:
         with open(work_fullpath, 'rU') as work_file:
             csv_reader = csv.reader(work_file, delimiter=',', quotechar='"')
             #csv_reader = csv.reader(work_file, delimiter='\t', quotechar="'")
+            # I need to figure out so as not to keep swapping betwee tab and comma delimited
             csv_reader.next() #skip header
             if row_to_work_on < row_count:
                 for i in xrange(row_to_work_on - 1): # skip everything right before
@@ -678,46 +640,6 @@ def process_file(work_filename, data_dir_name, logs_dir_name, results_dir_name):
 
 def main():
     """Main function to call scraper"""
-    stocks_tse_string = ''
-    stocks_tse_string = ''
-    stocks_tse_list = stocks_tse_string.split()
-    stocks_nas_string = 'AAPL ATEN' # debug using the following stocks) RL CVX LL SAM EL NWL COR ALB
-    #stocks_nas_string = 'RL CVX LL SAM EL NWL COR ALB'
-    stocks_nas_list = stocks_nas_string.split()
-    stocks_nys_string = ''
-    #stocks_nys_string = 'XOM'
-    stocks_nys_list = stocks_nys_string.split()
-
-    ca_errors_string = 'Could not analyze these CA stocks: '
-    us_errors_string = 'Could not analyze these US stocks: '
-    for item in stocks_tse_list:
-        try:
-            scrape_and_write_to_file(item)
-        except:
-            ca_errors_string += item + ' '
-        print ''
-
-    for item in stocks_nas_list:
-        #try:
-        #    scrape_and_write_to_file(item)
-        #except:
-        #    us_errors_string += item + ' '
-        scrape_and_write_to_file(item)
-        print ''
-
-    for item in stocks_nys_list:
-        try:
-            scrape_and_write_to_file(item)
-        except:
-            us_errors_string += item + ' '
-        print ''
-
-    print ca_errors_string
-    print us_errors_string
-
-def main2():
-    """For testing only"""
     process_dir('data', 'logs', 'results')
-    #process_file('hello.csv', 'data', 'logs', 'results')
 
-main2()
+main()
