@@ -157,14 +157,14 @@ def grab_summary_data(browser, stock_symbol, which_country=None):
                 retrieved_exchange = browser.find_element_by_xpath\
                     (const_summary_xpaths_dict['stock_symbol']).text.strip('()').split(':')[0]
                 retrieved_stock_symbol = browser.find_element_by_xpath\
-                    (const_summary_xpaths_dict['stock_symbol']).text.strip('()').split(':')[1]    
+                    (const_summary_xpaths_dict['stock_symbol']).text.strip('()').split(':')[1]
                 result_dict['Exchange'] = retrieved_exchange
                 result_dict['Stock Symbol'] = retrieved_stock_symbol
             except:
                 result_dict['Exchange'] = 'N/A'
                 result_dict['Stock Symbol'] = 'N/A'
 
-        if result_dict['Exchange'] != CVE or result_dict['Stock Symbol'] != stock_symbol:
+        if (result_dict['Exchange'] != CVE or result_dict['Exchange'] != TSE) and result_dict['Stock Symbol'] != stock_symbol:
             print "    Still could not find {}, giving up".format(stock_symbol)
 
     try:
@@ -630,6 +630,14 @@ def process_file(work_filename, data_dir_name, logs_dir_name, results_dir_name):
     """works on work_filename, requires where to grab data, write results and logs to"""
 
     print "File: ", work_filename
+    if work_filename.startswith('ca_'):
+        which_country= 'Canada'
+        print "Canadian list"
+    else:
+        which_country= 'USA'
+        print "American list"
+
+
     if not os.path.exists('{}'.format(logs_dir_name)):
         os.makedirs(logs_dir_name)
 
@@ -664,7 +672,7 @@ def process_file(work_filename, data_dir_name, logs_dir_name, results_dir_name):
 
                 for row in csv_reader:
                     print "  {}. {}".format(row_to_work_on, row[0])
-                    scrape_and_write_to_file(row[0], results_filename, results_dir_name)
+                    scrape_and_write_to_file(row[0], results_filename, results_dir_name, which_country)
                     row_to_work_on += 1
                     with open(log_fullpath, 'w') as log_file:
                         log_file.writelines('{}'.format(row_to_work_on))
