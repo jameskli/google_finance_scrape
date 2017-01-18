@@ -15,6 +15,7 @@ from selenium import webdriver
 NASDAQ = "NASDAQ"
 NYSE = "NYSE"
 TSE = "TSE"
+CVE= "CVE"
 RESULT_MULTIPLIER = "K"
 
 def return_base_url(stock_symbol, exchange=None):
@@ -59,7 +60,7 @@ def browser_xpath_click(browser, xpath_string):
     browser.find_element_by_xpath(xpath_string).click()
     browser_wait()
 
-def grab_summary_data(browser, stock_symbol):
+def grab_summary_data(browser, stock_symbol, which_country=None):
     """Retrieves basic information from a stock's Summary page , eg
     stock name, symbol, current PE ratio, market cap, employees
     """
@@ -98,39 +99,74 @@ def grab_summary_data(browser, stock_symbol):
                                 }
 
     result_dict = dict()
-    try:
-        retrieved_stock_symbol = browser.find_element_by_xpath\
-            (const_summary_xpaths_dict['stock_symbol']).text.strip('()').split(':')[1]
-        result_dict['Stock Symbol'] = retrieved_stock_symbol
-    except:
-        result_dict['Stock Symbol'] = 'N/A'
 
-    if result_dict['Stock Symbol'] != stock_symbol:
-        print "    Warning 1, {} is not in NASDAQ, retry with NYSE".format(stock_symbol)
+    if not which_country or which_country != 'Canada':  #if USA, or by default
         try:
-            browser_load_url(browser, return_base_url(stock_symbol, NYSE))
             retrieved_stock_symbol = browser.find_element_by_xpath\
                 (const_summary_xpaths_dict['stock_symbol']).text.strip('()').split(':')[1]
             result_dict['Stock Symbol'] = retrieved_stock_symbol
         except:
             result_dict['Stock Symbol'] = 'N/A'
 
-    if result_dict['Stock Symbol'] != stock_symbol:
-        print "    Warning 2, {} not in NYSE, retry with empty.".format(stock_symbol)
+        if result_dict['Stock Symbol'] != stock_symbol:
+            print "    Warning 1, {} is not in NASDAQ, retry with NYSE".format(stock_symbol)
+            try:
+                browser_load_url(browser, return_base_url(stock_symbol, NYSE))
+                retrieved_stock_symbol = browser.find_element_by_xpath\
+                    (const_summary_xpaths_dict['stock_symbol']).text.strip('()').split(':')[1]
+                result_dict['Stock Symbol'] = retrieved_stock_symbol
+            except:
+                result_dict['Stock Symbol'] = 'N/A'
+
+        if result_dict['Stock Symbol'] != stock_symbol:
+            print "    Warning 2, {} not in NYSE, retry with empty.".format(stock_symbol)
+            try:
+                browser_load_url(browser, return_base_url(stock_symbol))
+                retrieved_stock_symbol = browser.find_element_by_xpath\
+                    (const_summary_xpaths_dict['stock_symbol']).text.strip('()').split(':')[1]
+                result_dict['Stock Symbol'] = retrieved_stock_symbol
+            except:
+                result_dict['Stock Symbol'] = 'N/A'
+        if result_dict['Stock Symbol'] != stock_symbol:
+            print "    Still could not find {}, giving up".format(stock_symbol)
+
         try:
-            browser_load_url(browser, return_base_url(stock_symbol))
+            result_dict['Exchange'] = browser.find_element_by_xpath\
+                (const_summary_xpaths_dict['stock_symbol']).text.strip('()').split(':')[0]
+        except:
+            result_dict['Exchange'] = 'N/A'
+
+    else: # assume Canada
+
+        try:
+            retrieved_exchange = browser.find_element_by_xpath\
+                (const_summary_xpaths_dict['stock_symbol']).text.strip('()').split(':')[0]
             retrieved_stock_symbol = browser.find_element_by_xpath\
                 (const_summary_xpaths_dict['stock_symbol']).text.strip('()').split(':')[1]
+            result_dict['Exchange'] = retrieved_exchange
             result_dict['Stock Symbol'] = retrieved_stock_symbol
+
         except:
+            result_dict['Exchange'] = 'N/A'
             result_dict['Stock Symbol'] = 'N/A'
-    if result_dict['Stock Symbol'] != stock_symbol:
-        print "    Still could not find {}, giving up".format(stock_symbol)
-    try:
-        result_dict['Exchange'] = browser.find_element_by_xpath\
-            (const_summary_xpaths_dict['stock_symbol']).text.strip('()').split(':')[0]
-    except:
-        result_dict['Exchange'] = 'N/A'
+
+        if result_dict['Exchange'] != TSE or result_dict['Stock Symbol'] != stock_symbol:
+            print "    Warning 1, {} is not in TSE, retry with CVE".format(stock_symbol)
+            try:
+                browser_load_url(browser, return_base_url(stock_symbol, CVE))
+                retrieved_exchange = browser.find_element_by_xpath\
+                    (const_summary_xpaths_dict['stock_symbol']).text.strip('()').split(':')[0]
+                retrieved_stock_symbol = browser.find_element_by_xpath\
+                    (const_summary_xpaths_dict['stock_symbol']).text.strip('()').split(':')[1]    
+                result_dict['Exchange'] = retrieved_exchange
+                result_dict['Stock Symbol'] = retrieved_stock_symbol
+            except:
+                result_dict['Exchange'] = 'N/A'
+                result_dict['Stock Symbol'] = 'N/A'
+
+        if result_dict['Exchange'] != CVE or result_dict['Stock Symbol'] != stock_symbol:
+            print "    Still could not find {}, giving up".format(stock_symbol)
+
     try:
         result_dict['Stock Name'] = browser.find_element_by_xpath\
             (const_summary_xpaths_dict['stock_name']).text
@@ -436,7 +472,7 @@ def clean_up_stock_symbol(input_stock_symbol):
     """Handles stock symbols with whitespace, but also, those that use hats ^
     to distinguish stock_classes eg DD^B for B class DD shares, should be DD-B"""
     return input_stock_symbol.strip().replace('^', '-')
-def scrape(stock_symbol):
+def scrape(stock_symbol, which_country=None):
     """Visits website to scrape data on stock_symbol in exchange."""
     ## SELENIUM PATH CONSTANTS
     const_page_xpaths_dict = {'income_statements' : """/html/body/div[@class='fjfe-bodywrapper']
@@ -456,22 +492,25 @@ def scrape(stock_symbol):
         /div[@id='fjfe-real-body']/div[@id='fjfe-click-wrapper']/div[@class='elastic']
         /div[@id='app']/div[@id='gf-viewc']/div[@class='fjfe-content']
         /div[@class='gf-table-control-plain']/div[@class='gf-control']/a[@id='annual']"""}
-    const_page_not_found_evidence = """/html/body/div[@class='fjfe-bodywrapper']
-    /div[@id='fjfe-real-body']/div[@id='fjfe-click-wrapper']/div[@class='elastic']
-    /div[@id='app']/div[@id='gf-viewc']/div[@class='fjfe-content']/div[3]"""
+    #const_page_not_found_evidence = """/html/body/div[@class='fjfe-bodywrapper']
+    #/div[@id='fjfe-real-body']/div[@id='fjfe-click-wrapper']/div[@class='elastic']
+    #/div[@id='app']/div[@id='gf-viewc']/div[@class='fjfe-content']/div[3]"""
     browser = initialize_browser()
-    browser_load_url(browser, return_base_url(stock_symbol, NASDAQ)) # assume NASDAQ
+    if not which_country or which_country != 'Canada':
+        browser_load_url(browser, return_base_url(stock_symbol, NASDAQ)) # assume NASDAQ
+    else: # assume Canada
+        browser_load_url(browser, return_base_url(stock_symbol, TSE)) # assume TSE
 
     stock_result_dict = dict()
-    stock_result_dict.update(grab_summary_data(browser, stock_symbol))
-    loaded_financial_data = True
+    stock_result_dict.update(grab_summary_data(browser, stock_symbol, which_country))
+    #loaded_financial_data = True
     loaded_income_statement = True
     loaded_balance_sheet = True
     try:
         browser_load_url(browser, return_finance_url(stock_symbol, stock_result_dict['Exchange']))
     except:
         print "Could not load Financial Data"
-        loaded_financial_data = False
+        #loaded_financial_data = False
         loaded_income_statement = False
         loaded_balance_sheet = False
     try:
@@ -522,7 +561,7 @@ def scrape(stock_symbol):
     browser_quit(browser)
     return stock_result_dict
 
-def scrape_and_write_to_file(stock_symbol, results_filename, results_dir_name):
+def scrape_and_write_to_file(stock_symbol, results_filename, results_dir_name, which_country=None):
     """Main function to scrape and analyze, split up into scrape and analyze steps"""
 
     result_order_list = ['Stock Symbol', 'Exchange', 'Stock Name', 'Current Year', 'Previous Year',
@@ -537,7 +576,7 @@ def scrape_and_write_to_file(stock_symbol, results_filename, results_dir_name):
                          'Current PE Ratio']
     stock_results_dict = {item: 'N/A' for item in result_order_list}
 
-    stock_results_dict.update(scrape(clean_up_stock_symbol(stock_symbol)))
+    stock_results_dict.update(scrape(clean_up_stock_symbol(stock_symbol), which_country))
 
     if not os.path.exists('{}'.format(results_dir_name)):
         os.makedirs(results_dir_name)
@@ -589,7 +628,7 @@ def process_dir(data_dir_name, logs_dir_name, results_dir_name):
     sys.stdout.flush()
 def process_file(work_filename, data_dir_name, logs_dir_name, results_dir_name):
     """works on work_filename, requires where to grab data, write results and logs to"""
-    
+
     print "File: ", work_filename
     if not os.path.exists('{}'.format(logs_dir_name)):
         os.makedirs(logs_dir_name)
