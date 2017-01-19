@@ -381,7 +381,7 @@ def grab_balance_sheet_data(browser):
                                        'total_curr_liab' : """{}/tbody/tr[@class='hilite'][3]
                                             /td[@class='r bld{}""".format(const_bal_xpath_base,
                                                                           y1_suffix),
-                                       'total_debt' : """{}/tbody/tr[@class='hilite'][5]
+                                       'total_liab' : """{}/tbody/tr[@class='hilite'][6]
                                             /td[@class='r bld{}""".format(const_bal_xpath_base,
                                                                           y1_suffix),
                                        'retained_earn' : """{}/tbody/tr[36]
@@ -419,11 +419,11 @@ def grab_balance_sheet_data(browser):
     except:
         result_dict['Total Current Liabilities'] = 'N/A'
     try:
-        result_dict['Total Debt'] = multiplier * \
+        result_dict['Total Liabilities'] = multiplier * \
             convert_readable_num_to_float(browser.find_element_by_xpath\
-            (const_balance_sheet_xpaths_dict['total_debt']).text)
+            (const_balance_sheet_xpaths_dict['total_liab']).text)
     except:
-        result_dict['Total Debt'] = 'N/A'
+        result_dict['Total Liabilities'] = 'N/A'
     try:
         result_dict['Retained Earnings'] = multiplier * \
             convert_readable_num_to_float(browser.find_element_by_xpath\
@@ -568,11 +568,11 @@ def scrape(stock_symbol, which_country=None):
             stock_result_dict['Fixed Assets'] = 'N/A'
         try:
             stock_result_dict['Share Equity'] = stock_result_dict['Retained Earnings'] - \
-                                                stock_result_dict['Total Debt']
+                                                stock_result_dict['Total Liabilities']
         except (TypeError, KeyError):
             stock_result_dict['Share Equity'] = 'N/A'
         try:
-            stock_result_dict['Long Term Liabilities'] = stock_result_dict['Total Debt'] - \
+            stock_result_dict['Long Term Liabilities'] = stock_result_dict['Total Liabilities'] - \
                                                 stock_result_dict['Total Current Liabilities']
         except (TypeError, KeyError):
             stock_result_dict['Long Term Liabilities'] = 'N/A'
@@ -595,7 +595,7 @@ def scrape_and_write_to_file(stock_symbol, results_filename, results_dir_name, w
                          'Net Income Current Year', 'Total Revenue Last Year',
                          'Net Income Last Year', 'Cash and Short Term Investments', 'Other Assets',
                          'Total Current Assets', 'Fixed Assets', 'Total Assets',
-                         'Total Current Liabilities', 'Long Term Liabilities', 'Total Debt',
+                         'Total Current Liabilities', 'Long Term Liabilities', 'Total Liabilities',
                          'Share Equity', 'Retained Earnings',
                          'Total Liabilities and Shareholders Equity', 'Employees', 'Market Cap',
                          'Current PE Ratio']
@@ -723,7 +723,7 @@ def main2():
                          'Net Income Current Year', 'Total Revenue Last Year',
                          'Net Income Last Year', 'Cash and Short Term Investments', 'Other Assets',
                          'Total Current Assets', 'Fixed Assets', 'Total Assets',
-                         'Total Current Liabilities', 'Long Term Liabilities', 'Total Debt',
+                         'Total Current Liabilities', 'Long Term Liabilities', 'Total Liabilities',
                          'Share Equity', 'Retained Earnings',
                          'Total Liabilities and Shareholders Equity', 'Employees', 'Market Cap',
                          'Current PE Ratio']
