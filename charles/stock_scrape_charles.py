@@ -165,7 +165,9 @@ def grab_summary_data(browser, stock_symbol, which_country=None):
                 result_dict['Stock Symbol'] = 'N/A'
 
 
-        if (result_dict['Exchange'] != CVE and result_dict['Exchange'] != TSE) or result_dict['Stock Symbol'] != stock_symbol:
+        if (result_dict['Exchange'] != CVE and result_dict['Exchange'] != TSE)\
+            or result_dict['Stock Symbol'] != stock_symbol:
+
             print "    Still could not find {}, giving up".format(stock_symbol)
 
     try:
@@ -616,8 +618,8 @@ def scrape_and_write_to_file(stock_symbol, results_filename, results_dir_name, w
         csv_writer.writerow([stock_results_dict[item] for item in result_order_list])
 
 def process_dir(data_dir_name, logs_dir_name, results_dir_name):
-    """Goes through data needs, the directory names for data, where to put results, where to log 
-    output"""
+    """Goes through data needs, the directory names for data,
+    where to put results, where to log output"""
 
     print "Begin batch processing"
 
@@ -695,7 +697,8 @@ def process_file(work_filename, data_dir_name, logs_dir_name, results_dir_name):
 
                 for row in csv_reader:
                     print "  {}. {}".format(row_to_work_on, row[0])
-                    scrape_and_write_to_file(row[0], results_filename, results_dir_name, which_country)
+                    scrape_and_write_to_file(row[0], results_filename, 
+                                             results_dir_name, which_country)
                     row_to_work_on += 1
                     with open(log_fullpath, 'w') as log_file:
                         log_file.writelines('{}'.format(row_to_work_on))
