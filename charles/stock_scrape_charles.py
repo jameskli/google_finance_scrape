@@ -536,22 +536,38 @@ def scrape(stock_symbol, which_country=None):
         stock_result_dict.update(grab_balance_sheet_data(browser))
 
     if loaded_income_statement:
-        stock_result_dict['Other'] = stock_result_dict['Gross Profit'] - \
+        try:
+            stock_result_dict['Other'] = stock_result_dict['Gross Profit'] - \
                                      stock_result_dict['Selling General Admin Expenses'] - \
                                      stock_result_dict['Research and Development'] - \
                                      stock_result_dict['Net Income Current Year']
+        except TypeError:
+            stock_result_dict['Other'] = 'N/A'
     else:
         stock_result_dict['Other'] = 'N/A'
 
     if loaded_balance_sheet:
-        stock_result_dict['Other Assets'] = stock_result_dict['Total Current Assets'] - \
-                                            stock_result_dict['Cash and Short Term Investments']
-        stock_result_dict['Fixed Assets'] = stock_result_dict['Total Assets'] - \
-                                            stock_result_dict['Total Current Assets']
-        stock_result_dict['Share Equity'] = stock_result_dict['Retained Earnings'] - \
-                                            stock_result_dict['Total Debt']
-        stock_result_dict['Long Term Liabilities'] = stock_result_dict['Total Debt'] - \
-                                            stock_result_dict['Total Current Liabilities']
+        try:
+            stock_result_dict['Other Assets'] = stock_result_dict['Total Current Assets'] - \
+                                                stock_result_dict['Cash and Short Term Investments']
+        except TypeError:
+            stock_result_dict['Other Assets'] = 'N/A'
+        try:
+            stock_result_dict['Fixed Assets'] = stock_result_dict['Total Assets'] - \
+                                                stock_result_dict['Total Current Assets']
+        except TypeError:
+            stock_result_dict['Fixed Assets'] = 'N/A'
+        try:
+            stock_result_dict['Share Equity'] = stock_result_dict['Retained Earnings'] - \
+                                                stock_result_dict['Total Debt']
+        except TypeError:
+            stock_result_dict['Share Equity'] = 'N/A'
+        try:
+            stock_result_dict['Long Term Liabilities'] = stock_result_dict['Total Debt'] - \
+                                                stock_result_dict['Total Current Liabilities']
+        except TypeError:
+            stock_result_dict['Long Term Liabilities'] = 'N/A'
+
     else:
         stock_result_dict['Other Assets'] = 'N/A'
         stock_result_dict['Fixed Assets'] = 'N/A'
@@ -631,10 +647,10 @@ def process_file(work_filename, data_dir_name, logs_dir_name, results_dir_name):
 
     print "File: ", work_filename
     if work_filename.startswith('ca_'):
-        which_country= 'Canada'
+        which_country = 'Canada'
         print "Canadian list"
     else:
-        which_country= 'USA'
+        which_country = 'USA'
         print "American list"
 
 
@@ -689,4 +705,24 @@ def main():
     """Main function to call scraper"""
     process_dir('data', 'logs', 'results')
 
-main()
+def main2():
+    """ test out sub functions"""
+    result_order_list = ['Stock Symbol', 'Exchange', 'Stock Name', 'Current Year', 'Previous Year',
+                         'Total Revenue Current Year', 'Cost of Revenue Total', 'Gross Profit',
+                         'Selling General Admin Expenses', 'Research and Development', 'Other',
+                         'Net Income Current Year', 'Total Revenue Last Year',
+                         'Net Income Last Year', 'Cash and Short Term Investments', 'Other Assets',
+                         'Total Current Assets', 'Fixed Assets', 'Total Assets',
+                         'Total Current Liabilities', 'Long Term Liabilities', 'Total Debt',
+                         'Share Equity', 'Retained Earnings',
+                         'Total Liabilities and Shareholders Equity', 'Employees', 'Market Cap',
+                         'Current PE Ratio']
+    stock_results_dict = {item: 'N/A' for item in result_order_list}
+
+    stock_results_dict.update(scrape('VPT', 'Canada'))
+    #print stock_results_dict
+    with open('test_results.csv', 'a+') as results_file:
+        csv_writer = csv.writer(results_file, quoting=csv.QUOTE_ALL)
+        csv_writer.writerow([stock_results_dict[item] for item in result_order_list])
+
+main2()
