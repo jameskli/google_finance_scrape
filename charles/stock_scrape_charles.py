@@ -164,7 +164,8 @@ def grab_summary_data(browser, stock_symbol, which_country=None):
                 result_dict['Exchange'] = 'N/A'
                 result_dict['Stock Symbol'] = 'N/A'
 
-        if (result_dict['Exchange'] != CVE or result_dict['Exchange'] != TSE) and result_dict['Stock Symbol'] != stock_symbol:
+
+        if (result_dict['Exchange'] != CVE and result_dict['Exchange'] != TSE) or result_dict['Stock Symbol'] != stock_symbol:
             print "    Still could not find {}, giving up".format(stock_symbol)
 
     try:
@@ -206,8 +207,11 @@ def grab_income_statement_data(browser):
     
     # num years to handle which columns refer to this year vs previous year etc.
     num_years = len(browser.find_elements_by_xpath(const_inc_xpath_year)) - 1
-
-    if num_years == 1:
+    
+    if num_years == 0:
+        print "      Warning, no income statement data!"
+        return {}
+    elif num_years == 1:
         print "      Warning, only 1 year of data available."
         y1_suffix = const_bal_xpath_ylast
         y2_suffix = const_bal_xpath_ylast
@@ -260,7 +264,7 @@ def grab_income_statement_data(browser):
 
     multiplier = grab_multiplier(browser,
                                  const_multipler_xpath) / si_suffix_to_float(RESULT_MULTIPLIER)
-
+    
     try:
         result_dict['Total Revenue Current Year'] = multiplier * \
             convert_readable_num_to_float(browser.find_element_by_xpath\
@@ -350,7 +354,10 @@ def grab_balance_sheet_data(browser):
     # num_years to handle which column refers to this year vs previous year etc.
     num_years = len(browser.find_elements_by_xpath(const_bal_xpath_year)) - 1
 
-    if num_years > 2:
+    if num_years == 0:
+        print "      Warning, no balance sheet data!"
+        return {}
+    elif num_years > 2:
         y1_suffix = const_bal_xpath_y1
     else:
         y1_suffix = const_bal_xpath_ylast
@@ -541,7 +548,7 @@ def scrape(stock_symbol, which_country=None):
                                      stock_result_dict['Selling General Admin Expenses'] - \
                                      stock_result_dict['Research and Development'] - \
                                      stock_result_dict['Net Income Current Year']
-        except TypeError:
+        except (TypeError, KeyError):
             stock_result_dict['Other'] = 'N/A'
     else:
         stock_result_dict['Other'] = 'N/A'
@@ -550,22 +557,22 @@ def scrape(stock_symbol, which_country=None):
         try:
             stock_result_dict['Other Assets'] = stock_result_dict['Total Current Assets'] - \
                                                 stock_result_dict['Cash and Short Term Investments']
-        except TypeError:
+        except (TypeError, KeyError):
             stock_result_dict['Other Assets'] = 'N/A'
         try:
             stock_result_dict['Fixed Assets'] = stock_result_dict['Total Assets'] - \
                                                 stock_result_dict['Total Current Assets']
-        except TypeError:
+        except (TypeError, KeyError):
             stock_result_dict['Fixed Assets'] = 'N/A'
         try:
             stock_result_dict['Share Equity'] = stock_result_dict['Retained Earnings'] - \
                                                 stock_result_dict['Total Debt']
-        except TypeError:
+        except (TypeError, KeyError):
             stock_result_dict['Share Equity'] = 'N/A'
         try:
             stock_result_dict['Long Term Liabilities'] = stock_result_dict['Total Debt'] - \
                                                 stock_result_dict['Total Current Liabilities']
-        except TypeError:
+        except (TypeError, KeyError):
             stock_result_dict['Long Term Liabilities'] = 'N/A'
 
     else:
@@ -719,10 +726,10 @@ def main2():
                          'Current PE Ratio']
     stock_results_dict = {item: 'N/A' for item in result_order_list}
 
-    stock_results_dict.update(scrape('VPT', 'Canada'))
+    stock_results_dict.update(scrape('NVLN', 'Canada'))
     #print stock_results_dict
     with open('test_results.csv', 'a+') as results_file:
         csv_writer = csv.writer(results_file, quoting=csv.QUOTE_ALL)
         csv_writer.writerow([stock_results_dict[item] for item in result_order_list])
 
-main2()
+main()
