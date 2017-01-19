@@ -15,7 +15,7 @@ from selenium import webdriver
 NASDAQ = "NASDAQ"
 NYSE = "NYSE"
 TSE = "TSE"
-CVE= "CVE"
+CVE = "CVE"
 RESULT_MULTIPLIER = "K"
 
 def return_base_url(stock_symbol, exchange=None):
@@ -206,10 +206,10 @@ def grab_income_statement_data(browser):
     const_inc_xpath_year = """/html/body/div[@class='fjfe-bodywrapper']/div[@id='fjfe-real-body']
         /div[@id='fjfe-click-wrapper']/div[@class='elastic']/div[@id='app']/div[@id='gf-viewc']
         /div[@class='fjfe-content']/div[@id='incannualdiv']/table[@id='fs-table']/thead/tr/th"""
-    
+
     # num years to handle which columns refer to this year vs previous year etc.
     num_years = len(browser.find_elements_by_xpath(const_inc_xpath_year)) - 1
-    
+
     if num_years == 0:
         print "      Warning, no income statement data!"
         return {}
@@ -697,7 +697,7 @@ def process_file(work_filename, data_dir_name, logs_dir_name, results_dir_name):
 
                 for row in csv_reader:
                     print "  {}. {}".format(row_to_work_on, row[0])
-                    scrape_and_write_to_file(row[0], results_filename, 
+                    scrape_and_write_to_file(row[0], results_filename,
                                              results_dir_name, which_country)
                     row_to_work_on += 1
                     with open(log_fullpath, 'w') as log_file:
