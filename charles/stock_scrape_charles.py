@@ -729,10 +729,10 @@ def main2():
                          'Current PE Ratio']
     stock_results_dict = {item: 'N/A' for item in result_order_list}
 
-    stock_results_dict.update(scrape('NVLN', 'Canada'))
+    stock_results_dict.update(scrape('CNCE', ''))
     #print stock_results_dict
     with open('test_results.csv', 'a+') as results_file:
         csv_writer = csv.writer(results_file, quoting=csv.QUOTE_ALL)
         csv_writer.writerow([stock_results_dict[item] for item in result_order_list])
 
-main()
+main2()
