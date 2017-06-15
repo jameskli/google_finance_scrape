@@ -589,7 +589,7 @@ def scrape(stock_symbol, which_country=None):
 def scrape_and_write_to_file(stock_symbol, results_filename, results_dir_name, which_country=None):
     """Main function to scrape and analyze, split up into scrape and analyze steps"""
 
-    result_order_list = ['Stock Symbol', 'Exchange', 'Stock Name', 'Current Year', 'Previous Year',
+    result_order_list = ['Stock Symbol', 'Exchange', 'Stock Name', 'Country', 'Current Year', 'Previous Year',
                          'Total Revenue Current Year', 'Cost of Revenue Total', 'Gross Profit',
                          'Selling General Admin Expenses', 'Research and Development', 'Other',
                          'Net Income Current Year', 'Total Revenue Last Year',
@@ -717,7 +717,7 @@ def main():
 
 def main2():
     """ test out sub functions"""
-    result_order_list = ['Stock Symbol', 'Exchange', 'Stock Name', 'Current Year', 'Previous Year',
+    result_order_list = ['Stock Symbol', 'Exchange', 'Stock Name', 'Country', 'Current Year', 'Previous Year',
                          'Total Revenue Current Year', 'Cost of Revenue Total', 'Gross Profit',
                          'Selling General Admin Expenses', 'Research and Development', 'Other',
                          'Net Income Current Year', 'Total Revenue Last Year',
