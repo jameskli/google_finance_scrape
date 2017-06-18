@@ -26,9 +26,11 @@ def return_base_url(stock_symbol, exchange=None):
     const_base_url = 'https://www.google.com/finance?q='
 
     if not exchange:
-        return const_base_url + stock_symbol
+        # return const_base_url + stock_symbol
+        return const_base_url + stock_symbol.replace(" ", "+")
     else:
-        return const_base_url + exchange + '%3A'+stock_symbol
+        #return const_base_url + exchange + '%3A'+stock_symbol
+        return const_base_url + stock_symbol.replace(" ", "+")
 
 def return_finance_url(stock_symbol, exchange):
     """Returns the path to the financials page from the main stock listing page,
@@ -95,8 +97,62 @@ def grab_summary_data(browser, stock_symbol, which_country=None):
                                     /div[@class='g-unit']/div[@id='market-data-div']
                                     /div[@class='snap-panel-and-plusone']/div[@class='snap-panel']
                                     /table[@class='snap-data'][1]/tbody/tr[5]
-                                    /td[@class='val']""".format(const_sum_xpath_base)
+                                    /td[@class='val']""".format(const_sum_xpath_base),
+                                 'country_origin' : """{}/div[@class='elastic']/div[@id='app']
+                                    /div[@id='gf-viewc']/div[@class='fjfe-content']
+                                    /div[@class='g-wrap']
+                                    /div[@class='g-section g-tpl-right-1 sfe-break-top-5']
+                                    /div[@class='g-unit g-first']/div[@class='g-c']
+                                    /div[@class='sfe-section'][2]""".format(const_sum_xpath_base)
+
                                 }
+    country_names = ['United States', 'China', 'Canada', 'United Kingdom', 'France', 'Germany',
+        'India', 'Japan', 'Afghanistan', 'Albania', 'Algeria', 'American Samoa', 'Andorra',
+        'Angola', 'South Korea',
+        'Anguilla', 'Antarctica', 'Antigua and Barbuda', 'Argentina', 'Armenia', 'Aruba',
+        'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh', 'Barbados',
+        'Belarus', 'Belgium', 'Belize', 'Benin', 'Bermuda', 'Bhutan', 'Bolivia',
+        'Bosnia and Herzegovina', 'Botswana', 'Bouvet Island', 'Brazil',
+        'British Antarctic Territory', 'British Indian Ocean Territory', 'British Virgin Islands',
+        'Brunei', 'Bulgaria', 'Burkina Faso', 'Burundi', 'Cambodia', 'Cameroon',
+        'Canton and Enderbury Islands', 'Cape Verde', 'Cayman Islands', 'Central African Republic',
+        'Chad', 'Chile', 'China', 'Christmas Island', 'Cocos Islands', 'Colombia', 'Comoros',
+        'Congo - Brazzaville', 'Congo - Kinshasa', 'Cook Islands', 'Costa Rica', 'Croatia', 'Cuba',
+        'Cyprus', 'Czech Republic', 'Côte d’Ivoire', 'Denmark', 'Djibouti', 'Dominica',
+        'Dominican Republic', 'Dronning Maud Land', 'East Germany', 'Ecuador', 'Egypt', 
+        'El Salvador', 'Equatorial Guinea', 'Eritrea', 'Estonia', 'Ethiopia', 'Falkland Islands',
+        'Faroe Islands', 'Fiji', 'Finland', 'French Guiana', 'French Polynesia',
+        'French Southern Territories', 'French Southern and Antarctic Territories', 'Gabon',
+        'Gambia', 'Georgia', 'Ghana', 'Gibraltar', 'Greece', 'Greenland', 'Grenada', 
+        'Guadeloupe', 'Guam', 'Guatemala', 'Guernsey', 'Guinea', 'Guinea-Bissau', 'Guyana', 'Haiti',
+        'Heard Island and McDonald Islands', 'Honduras', 'Hong Kong', 'Hungary', 'Iceland',
+        'Indonesia', 'Iran', 'Iraq', 'Ireland', 'Isle of Man', 'Israel', 'Italy', 'Jamaica',
+        'Japan', 'Jersey', 'Johnston Island', 'Jordan', 'Kazakhstan', 'Kenya', 'Kiribati', 'Kuwait',
+        'Kyrgyzstan', 'Laos', 'Latvia', 'Lebanon', 'Lesotho', 'Liberia', 'Libya', 'Liechtenstein',
+        'Lithuania', 'Luxembourg', 'Macau SAR China', 'Macedonia', 'Madagascar', 'Malawi',
+        'Malaysia', 'Maldives', 'Mali', 'Malta', 'Marshall Islands', 'Martinique', 'Mauritania',
+        'Mauritius', 'Mayotte', 'Mexico', 'Micronesia', 'Midway Islands', 'Moldova', 'Monaco',
+        'Mongolia', 'Montenegro', 'Montserrat', 'Morocco', 'Mozambique', 'Myanmar', 'Burma',
+        'Namibia', 'Nauru', 'Nepal', 'Netherlands', 'Netherlands Antilles', 'Neutral Zone',
+        'New Caledonia', 'New Zealand', 'Nicaragua', 'Niger', 'Nigeria', 'Niue', 'Norfolk Island',
+        'North Korea', 'North Vietnam', 'Northern Mariana Islands', 'Norway', 'Oman',
+        'Pacific Islands Trust Territory', 'Pakistan', 'Palau', 'Palestinian Territories',
+        'Panama', 'Panama Canal Zone', 'Papua New Guinea', 'Paraguay', 'Yemen', 'Peru', 
+        'Philippines', 'Pitcairn Islands', 'Poland', 'Portugal', 'Puerto Rico', 'Qatar', 'Romania',
+        'Russia', 'Rwanda', 'Réunion', 'Saint Barthélemy', 'Saint Helena', 'Saint Kitts and Nevis',
+        'Saint Lucia', 'Saint Martin', 'Saint Pierre and Miquelon',
+        'Saint Vincent and the Grenadines', 'Samoa', 'San Marino', 'Saudi Arabia', 'Senegal',
+        'Serbia', 'Serbia and Montenegro', 'Seychelles', 'Sierra Leone', 'Singapore', 'Slovakia',
+        'Slovenia', 'Solomon Islands', 'Somalia', 'South Africa', 'Spain',
+        'Sri Lanka', 'Sudan', 'Suriname', 'Svalbard and Jan Mayen', 'Swaziland', 'Sweden',
+        'Switzerland', 'Syria', 'São Tomé and Príncipe', 'Taiwan', 'Tajikistan', 'Tanzania',
+        'Thailand', 'Timor-Leste', 'Togo', 'Tokelau', 'Tonga', 'Trinidad and Tobago', 'Tunisia',
+        'Turkey', 'Turkmenistan', 'Turks and Caicos Islands', 'Tuvalu',
+        'U.S. Minor Outlying Islands', 'U.S. Miscellaneous Pacific Islands',
+        'U.S. Virgin Islands', 'Uganda', 'Ukraine', 'United Arab Emirates',
+        'Unknown or Invalid Region', 'Uruguay', 'Uzbekistan', 'Vanuatu',
+        'Vatican City', 'Venezuela', 'Vietnam', 'Wake Island', 'Wallis and Futuna',
+        'Western Sahara', 'Yemen', 'Zambia', 'Zimbabwe']
 
     result_dict = dict()
 
@@ -192,7 +248,23 @@ def grab_summary_data(browser, stock_symbol, which_country=None):
             (const_summary_xpaths_dict['current_pe']).text.strip()
     except:
         result_dict['Current PE Ratio'] = 'N/A'
+    try:
+        country_string = browser.find_element_by_xpath\
+            (const_summary_xpaths_dict['country_origin']).text.strip()
+        country_identified = False
 
+        result_dict['Country'] = 'N/A'
+
+        for country in country_names:
+            if not country_identified:
+                if country in country_string:
+                    result_dict['Country'] = country
+                    country_identified = True
+        
+    except:
+        result_dict['Country'] = 'N/A'
+
+    
     return result_dict
 
 def grab_income_statement_data(browser):
@@ -516,7 +588,8 @@ def scrape(stock_symbol, which_country=None):
     loaded_income_statement = True
     loaded_balance_sheet = True
     try:
-        browser_load_url(browser, return_finance_url(stock_symbol, stock_result_dict['Exchange']))
+        #browser_load_url(browser, return_finance_url(stock_symbol, stock_result_dict['Exchange']))
+        browser_load_url(browser, return_finance_url(stock_result_dict['Stock Symbol'], stock_result_dict['Exchange']))
     except:
         print "Could not load Financial Data"
         #loaded_financial_data = False
@@ -735,4 +808,18 @@ def main2():
         csv_writer = csv.writer(results_file, quoting=csv.QUOTE_ALL)
         csv_writer.writerow([stock_results_dict[item] for item in result_order_list])
 
-main2()
+def main3():
+    with open('countries.txt', 'rU') as work_file:
+        csv_reader = csv.reader(work_file)
+        string1 = "var_name = Set([\'"
+        for rows in csv_reader:
+             string1 = string1 + rows[0]
+             string1 += "\', \'" 
+        
+        print string1
+
+        your_list = list(csv_reader)
+        # print ', '.join(your_list)
+    
+
+main()
