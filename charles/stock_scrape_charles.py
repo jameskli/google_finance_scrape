@@ -108,7 +108,7 @@ def grab_summary_data(browser, stock_symbol, which_country=None):
         except:
             result_dict['Stock Symbol'] = 'N/A'
 
-        if result_dict['Stock Symbol'] != stock_symbol:
+        if 0 and result_dict['Stock Symbol'] != stock_symbol:
             print "    Warning 1, {} is not in NASDAQ, retry with NYSE".format(stock_symbol)
             try:
                 browser_load_url(browser, return_base_url(stock_symbol, NYSE))
@@ -118,7 +118,7 @@ def grab_summary_data(browser, stock_symbol, which_country=None):
             except:
                 result_dict['Stock Symbol'] = 'N/A'
 
-        if result_dict['Stock Symbol'] != stock_symbol:
+        if 0 and result_dict['Stock Symbol'] != stock_symbol:
             print "    Warning 2, {} not in NYSE, retry with empty.".format(stock_symbol)
             try:
                 browser_load_url(browser, return_base_url(stock_symbol))
@@ -127,7 +127,7 @@ def grab_summary_data(browser, stock_symbol, which_country=None):
                 result_dict['Stock Symbol'] = retrieved_stock_symbol
             except:
                 result_dict['Stock Symbol'] = 'N/A'
-        if result_dict['Stock Symbol'] != stock_symbol:
+        if 0 and result_dict['Stock Symbol'] != stock_symbol:
             print "    Still could not find {}, giving up".format(stock_symbol)
 
         try:
