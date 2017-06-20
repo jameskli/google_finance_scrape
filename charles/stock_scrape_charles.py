@@ -26,11 +26,13 @@ def return_base_url(stock_symbol, exchange=None):
     const_base_url = 'https://www.google.com/finance?q='
 
     if not exchange:
-        # return const_base_url + stock_symbol
-        return const_base_url + stock_symbol.replace(" ", "+")
+        return const_base_url + stock_symbol
+        # return const_base_url + stock_symbol.replace(" ", "+") + "+NYSE"
+        # return const_base_url + stock_symbol.replace(":", "%3A")
     else:
-        #return const_base_url + exchange + '%3A'+stock_symbol
-        return const_base_url + stock_symbol.replace(" ", "+")
+        return const_base_url + exchange + '%3A'+stock_symbol
+        # return const_base_url + stock_symbol.replace(" ", "+") + "+NYSE"
+        # return const_base_url + stock_symbol.replace(":", "%3A")
 
 def return_finance_url(stock_symbol, exchange):
     """Returns the path to the financials page from the main stock listing page,
@@ -137,7 +139,7 @@ def grab_summary_data(browser, stock_symbol, which_country=None):
         'New Caledonia', 'New Zealand', 'Nicaragua', 'Niger', 'Nigeria', 'Niue', 'Norfolk Island',
         'North Korea', 'North Vietnam', 'Northern Mariana Islands', 'Norway', 'Oman',
         'Pacific Islands Trust Territory', 'Pakistan', 'Palau', 'Palestinian Territories',
-        'Panama', 'Panama Canal Zone', 'Papua New Guinea', 'Paraguay', 'Yemen', 'Peru', 
+        'Panama', 'Panama Canal Zone', 'Papua New Guinea', 'Paraguay', 'Yemen', 'Peru',
         'Philippines', 'Pitcairn Islands', 'Poland', 'Portugal', 'Puerto Rico', 'Qatar', 'Romania',
         'Russia', 'Rwanda', 'Réunion', 'Saint Barthélemy', 'Saint Helena', 'Saint Kitts and Nevis',
         'Saint Lucia', 'Saint Martin', 'Saint Pierre and Miquelon',
@@ -164,7 +166,8 @@ def grab_summary_data(browser, stock_symbol, which_country=None):
         except:
             result_dict['Stock Symbol'] = 'N/A'
 
-        if 0 and result_dict['Stock Symbol'] != stock_symbol:
+        #if 0 and result_dict['Stock Symbol'] != stock_symbol:
+        if result_dict['Stock Symbol'] != stock_symbol:
             print "    Warning 1, {} is not in NASDAQ, retry with NYSE".format(stock_symbol)
             try:
                 browser_load_url(browser, return_base_url(stock_symbol, NYSE))
@@ -174,7 +177,8 @@ def grab_summary_data(browser, stock_symbol, which_country=None):
             except:
                 result_dict['Stock Symbol'] = 'N/A'
 
-        if 0 and result_dict['Stock Symbol'] != stock_symbol:
+        #if 0 and result_dict['Stock Symbol'] != stock_symbol:
+        if result_dict['Stock Symbol'] != stock_symbol:
             print "    Warning 2, {} not in NYSE, retry with empty.".format(stock_symbol)
             try:
                 browser_load_url(browser, return_base_url(stock_symbol))
@@ -183,7 +187,8 @@ def grab_summary_data(browser, stock_symbol, which_country=None):
                 result_dict['Stock Symbol'] = retrieved_stock_symbol
             except:
                 result_dict['Stock Symbol'] = 'N/A'
-        if 0 and result_dict['Stock Symbol'] != stock_symbol:
+        #if 0 and result_dict['Stock Symbol'] != stock_symbol:
+        if result_dict['Stock Symbol'] != stock_symbol:
             print "    Still could not find {}, giving up".format(stock_symbol)
 
         try:
@@ -252,16 +257,17 @@ def grab_summary_data(browser, stock_symbol, which_country=None):
         country_string = browser.find_element_by_xpath\
             (const_summary_xpaths_dict['country_origin']).text.strip()
         country_identified = False
+        print country_string
+        result_dict['Country'] = country_string
 
-        result_dict['Country'] = 'N/A'
-
-        for country in country_names:
-            if not country_identified:
-                if country in country_string:
-                    result_dict['Country'] = country
-                    country_identified = True
+        #for country in country_names:
+        #    if not country_identified:
+        #        if country in country_string:
+        #            result_dict['Country'] = country
+        #            country_identified = True
         
     except:
+        print "entered here??"
         result_dict['Country'] = 'N/A'
 
     
