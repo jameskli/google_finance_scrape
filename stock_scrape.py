@@ -27,23 +27,18 @@ def return_base_url(stock_symbol, exchange=None):
 
     if not exchange:
         return const_base_url + stock_symbol
-        # return const_base_url + stock_symbol.replace(" ", "+") + "+NYSE"
-        # return const_base_url + stock_symbol.replace(":", "%3A")
+        
     else:
         return const_base_url + exchange + '%3A'+stock_symbol
-        # return const_base_url + stock_symbol.replace(" ", "+") + "+NYSE"
-        # return const_base_url + stock_symbol.replace(":", "%3A")
-
+        
 def return_finance_url(stock_symbol, exchange):
     """Returns the path to the financials page from the main stock listing page,
     e.g. on Google Finance"""
     const_financial_url_path = '&fstype=ii'
     return return_base_url(stock_symbol, exchange) + const_financial_url_path
 def initialize_browser():
-    """Initialize browser, also includes using an adblocker, but I dont think it quite works"""
-    const_adblock_xpi_path = 'res/uBlock0.firefox.xpi'  # load Firefox with uBlock Origin enabled
+    """Initialize browser"""
     ffprofile = webdriver.FirefoxProfile()
-    ffprofile.add_extension(const_adblock_xpi_path)
     browser = webdriver.Firefox(firefox_profile=ffprofile)
     return browser
 def browser_load_url(browser, url_string):
@@ -108,53 +103,6 @@ def grab_summary_data(browser, stock_symbol, which_country=None):
                                     /div[@class='sfe-section'][2]""".format(const_sum_xpath_base)
 
                                 }
-    country_names = ['United States', 'China', 'Canada', 'United Kingdom', 'France', 'Germany',
-        'India', 'Japan', 'Afghanistan', 'Albania', 'Algeria', 'American Samoa', 'Andorra',
-        'Angola', 'South Korea',
-        'Anguilla', 'Antarctica', 'Antigua and Barbuda', 'Argentina', 'Armenia', 'Aruba',
-        'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh', 'Barbados',
-        'Belarus', 'Belgium', 'Belize', 'Benin', 'Bermuda', 'Bhutan', 'Bolivia',
-        'Bosnia and Herzegovina', 'Botswana', 'Bouvet Island', 'Brazil',
-        'British Antarctic Territory', 'British Indian Ocean Territory', 'British Virgin Islands',
-        'Brunei', 'Bulgaria', 'Burkina Faso', 'Burundi', 'Cambodia', 'Cameroon',
-        'Canton and Enderbury Islands', 'Cape Verde', 'Cayman Islands', 'Central African Republic',
-        'Chad', 'Chile', 'China', 'Christmas Island', 'Cocos Islands', 'Colombia', 'Comoros',
-        'Congo - Brazzaville', 'Congo - Kinshasa', 'Cook Islands', 'Costa Rica', 'Croatia', 'Cuba',
-        'Cyprus', 'Czech Republic', 'Côte d’Ivoire', 'Denmark', 'Djibouti', 'Dominica',
-        'Dominican Republic', 'Dronning Maud Land', 'East Germany', 'Ecuador', 'Egypt', 
-        'El Salvador', 'Equatorial Guinea', 'Eritrea', 'Estonia', 'Ethiopia', 'Falkland Islands',
-        'Faroe Islands', 'Fiji', 'Finland', 'French Guiana', 'French Polynesia',
-        'French Southern Territories', 'French Southern and Antarctic Territories', 'Gabon',
-        'Gambia', 'Georgia', 'Ghana', 'Gibraltar', 'Greece', 'Greenland', 'Grenada', 
-        'Guadeloupe', 'Guam', 'Guatemala', 'Guernsey', 'Guinea', 'Guinea-Bissau', 'Guyana', 'Haiti',
-        'Heard Island and McDonald Islands', 'Honduras', 'Hong Kong', 'Hungary', 'Iceland',
-        'Indonesia', 'Iran', 'Iraq', 'Ireland', 'Isle of Man', 'Israel', 'Italy', 'Jamaica',
-        'Japan', 'Jersey', 'Johnston Island', 'Jordan', 'Kazakhstan', 'Kenya', 'Kiribati', 'Kuwait',
-        'Kyrgyzstan', 'Laos', 'Latvia', 'Lebanon', 'Lesotho', 'Liberia', 'Libya', 'Liechtenstein',
-        'Lithuania', 'Luxembourg', 'Macau SAR China', 'Macedonia', 'Madagascar', 'Malawi',
-        'Malaysia', 'Maldives', 'Mali', 'Malta', 'Marshall Islands', 'Martinique', 'Mauritania',
-        'Mauritius', 'Mayotte', 'Mexico', 'Micronesia', 'Midway Islands', 'Moldova', 'Monaco',
-        'Mongolia', 'Montenegro', 'Montserrat', 'Morocco', 'Mozambique', 'Myanmar', 'Burma',
-        'Namibia', 'Nauru', 'Nepal', 'Netherlands', 'Netherlands Antilles', 'Neutral Zone',
-        'New Caledonia', 'New Zealand', 'Nicaragua', 'Niger', 'Nigeria', 'Niue', 'Norfolk Island',
-        'North Korea', 'North Vietnam', 'Northern Mariana Islands', 'Norway', 'Oman',
-        'Pacific Islands Trust Territory', 'Pakistan', 'Palau', 'Palestinian Territories',
-        'Panama', 'Panama Canal Zone', 'Papua New Guinea', 'Paraguay', 'Yemen', 'Peru',
-        'Philippines', 'Pitcairn Islands', 'Poland', 'Portugal', 'Puerto Rico', 'Qatar', 'Romania',
-        'Russia', 'Rwanda', 'Réunion', 'Saint Barthélemy', 'Saint Helena', 'Saint Kitts and Nevis',
-        'Saint Lucia', 'Saint Martin', 'Saint Pierre and Miquelon',
-        'Saint Vincent and the Grenadines', 'Samoa', 'San Marino', 'Saudi Arabia', 'Senegal',
-        'Serbia', 'Serbia and Montenegro', 'Seychelles', 'Sierra Leone', 'Singapore', 'Slovakia',
-        'Slovenia', 'Solomon Islands', 'Somalia', 'South Africa', 'Spain',
-        'Sri Lanka', 'Sudan', 'Suriname', 'Svalbard and Jan Mayen', 'Swaziland', 'Sweden',
-        'Switzerland', 'Syria', 'São Tomé and Príncipe', 'Taiwan', 'Tajikistan', 'Tanzania',
-        'Thailand', 'Timor-Leste', 'Togo', 'Tokelau', 'Tonga', 'Trinidad and Tobago', 'Tunisia',
-        'Turkey', 'Turkmenistan', 'Turks and Caicos Islands', 'Tuvalu',
-        'U.S. Minor Outlying Islands', 'U.S. Miscellaneous Pacific Islands',
-        'U.S. Virgin Islands', 'Uganda', 'Ukraine', 'United Arab Emirates',
-        'Unknown or Invalid Region', 'Uruguay', 'Uzbekistan', 'Vanuatu',
-        'Vatican City', 'Venezuela', 'Vietnam', 'Wake Island', 'Wallis and Futuna',
-        'Western Sahara', 'Yemen', 'Zambia', 'Zimbabwe']
 
     result_dict = dict()
 
@@ -166,7 +114,7 @@ def grab_summary_data(browser, stock_symbol, which_country=None):
         except:
             result_dict['Stock Symbol'] = 'N/A'
 
-        #if 0 and result_dict['Stock Symbol'] != stock_symbol:
+        
         if result_dict['Stock Symbol'] != stock_symbol:
             print "    Warning 1, {} is not in NASDAQ, retry with NYSE".format(stock_symbol)
             try:
@@ -177,7 +125,7 @@ def grab_summary_data(browser, stock_symbol, which_country=None):
             except:
                 result_dict['Stock Symbol'] = 'N/A'
 
-        #if 0 and result_dict['Stock Symbol'] != stock_symbol:
+        
         if result_dict['Stock Symbol'] != stock_symbol:
             print "    Warning 2, {} not in NYSE, retry with empty.".format(stock_symbol)
             try:
@@ -187,7 +135,7 @@ def grab_summary_data(browser, stock_symbol, which_country=None):
                 result_dict['Stock Symbol'] = retrieved_stock_symbol
             except:
                 result_dict['Stock Symbol'] = 'N/A'
-        #if 0 and result_dict['Stock Symbol'] != stock_symbol:
+        
         if result_dict['Stock Symbol'] != stock_symbol:
             print "    Still could not find {}, giving up".format(stock_symbol)
 
@@ -257,17 +205,10 @@ def grab_summary_data(browser, stock_symbol, which_country=None):
         country_string = browser.find_element_by_xpath\
             (const_summary_xpaths_dict['country_origin']).text.strip()
         country_identified = False
-        print country_string
         result_dict['Country'] = country_string
 
-        #for country in country_names:
-        #    if not country_identified:
-        #        if country in country_string:
-        #            result_dict['Country'] = country
-        #            country_identified = True
         
     except:
-        print "entered here??"
         result_dict['Country'] = 'N/A'
 
     
@@ -579,9 +520,7 @@ def scrape(stock_symbol, which_country=None):
         /div[@id='fjfe-real-body']/div[@id='fjfe-click-wrapper']/div[@class='elastic']
         /div[@id='app']/div[@id='gf-viewc']/div[@class='fjfe-content']
         /div[@class='gf-table-control-plain']/div[@class='gf-control']/a[@id='annual']"""}
-    #const_page_not_found_evidence = """/html/body/div[@class='fjfe-bodywrapper']
-    #/div[@id='fjfe-real-body']/div[@id='fjfe-click-wrapper']/div[@class='elastic']
-    #/div[@id='app']/div[@id='gf-viewc']/div[@class='fjfe-content']/div[3]"""
+    
     browser = initialize_browser()
     if not which_country or which_country != 'Canada':
         browser_load_url(browser, return_base_url(stock_symbol, NASDAQ)) # assume NASDAQ
@@ -590,15 +529,13 @@ def scrape(stock_symbol, which_country=None):
 
     stock_result_dict = dict()
     stock_result_dict.update(grab_summary_data(browser, stock_symbol, which_country))
-    #loaded_financial_data = True
+    
     loaded_income_statement = True
     loaded_balance_sheet = True
     try:
-        #browser_load_url(browser, return_finance_url(stock_symbol, stock_result_dict['Exchange']))
         browser_load_url(browser, return_finance_url(stock_result_dict['Stock Symbol'], stock_result_dict['Exchange']))
     except:
         print "Could not load Financial Data"
-        #loaded_financial_data = False
         loaded_income_statement = False
         loaded_balance_sheet = False
     try:
@@ -760,15 +697,13 @@ def process_file(work_filename, data_dir_name, logs_dir_name, results_dir_name):
         row_to_work_on = 1
     with open(work_fullpath, 'rU') as work_file:
         csv_reader = csv.reader(work_file, delimiter=',', quotechar='"')
-        #csv_reader = csv.reader(work_file, delimiter='\t', quotechar="'")
-        # I need to figure out so as not to keep swapping betwee tab and comma delimited
+        
         row_count = sum(1 for row in csv_reader)
 
     if row_to_work_on >= 0:
         with open(work_fullpath, 'rU') as work_file:
             csv_reader = csv.reader(work_file, delimiter=',', quotechar='"')
-            #csv_reader = csv.reader(work_file, delimiter='\t', quotechar="'")
-            # I need to figure out so as not to keep swapping betwee tab and comma delimited
+            
             csv_reader.next() #skip header
             if row_to_work_on < row_count:
                 for i in xrange(row_to_work_on - 1): # skip everything right before
@@ -793,39 +728,5 @@ def process_file(work_filename, data_dir_name, logs_dir_name, results_dir_name):
 def main():
     """Main function to call scraper"""
     process_dir('data', 'logs', 'results')
-
-def main2():
-    """ test out sub functions"""
-    result_order_list = ['Stock Symbol', 'Exchange', 'Stock Name', 'Country', 'Current Year', 'Previous Year',
-                         'Total Revenue Current Year', 'Cost of Revenue Total', 'Gross Profit',
-                         'Selling General Admin Expenses', 'Research and Development', 'Other',
-                         'Net Income Current Year', 'Total Revenue Last Year',
-                         'Net Income Last Year', 'Cash and Short Term Investments', 'Other Assets',
-                         'Total Current Assets', 'Fixed Assets', 'Total Assets',
-                         'Total Current Liabilities', 'Long Term Liabilities', 'Total Liabilities',
-                         'Share Equity', 'Retained Earnings',
-                         'Total Liabilities and Shareholders Equity', 'Employees', 'Market Cap',
-                         'Current PE Ratio']
-    stock_results_dict = {item: 'N/A' for item in result_order_list}
-
-    stock_results_dict.update(scrape('CNCE', ''))
-    #print stock_results_dict
-    with open('test_results.csv', 'a+') as results_file:
-        csv_writer = csv.writer(results_file, quoting=csv.QUOTE_ALL)
-        csv_writer.writerow([stock_results_dict[item] for item in result_order_list])
-
-def main3():
-    with open('countries.txt', 'rU') as work_file:
-        csv_reader = csv.reader(work_file)
-        string1 = "var_name = Set([\'"
-        for rows in csv_reader:
-             string1 = string1 + rows[0]
-             string1 += "\', \'" 
-        
-        print string1
-
-        your_list = list(csv_reader)
-        # print ', '.join(your_list)
-    
 
 main()
